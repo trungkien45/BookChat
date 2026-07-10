@@ -149,17 +149,44 @@ namespace BookChat
                         }
 
                         // add parent link if not at root
-                        if (!string.IsNullOrEmpty(rootPath) && !string.Equals(currentPath?.TrimEnd(System.IO.Path.DirectorySeparatorChar), rootPath?.TrimEnd(System.IO.Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+                        if (!string.IsNullOrEmpty(rootPath))
                         {
-                            filesStack.Children.Add(CreateItemView("..", true, () =>
+                            try
                             {
-                                var parent = System.IO.Directory.GetParent(currentPath);
-                                if (parent != null)
+                                var normRoot = System.IO.Path.GetFullPath(rootPath)
+                                    .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+                                var normCurrent = System.IO.Path.GetFullPath(currentPath ?? rootPath)
+                                    .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+
+                                if (!string.Equals(normCurrent, normRoot, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    currentPath = parent.FullName;
-                                    _ = LoadLibPathAsync();
+                                    filesStack.Children.Add(CreateItemView("..", true, () =>
+                                    {
+                                        var parent = System.IO.Directory.GetParent(currentPath);
+                                        if (parent != null)
+                                        {
+                                            currentPath = parent.FullName;
+                                            _ = LoadLibPathAsync();
+                                        }
+                                    }));
                                 }
-                            }));
+                            }
+                            catch
+                            {
+                                // Fallback: show parent if currentPath is different string-wise
+                                if (!string.Equals(currentPath, rootPath, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    filesStack.Children.Add(CreateItemView("..", true, () =>
+                                    {
+                                        var parent = System.IO.Directory.GetParent(currentPath);
+                                        if (parent != null)
+                                        {
+                                            currentPath = parent.FullName;
+                                            _ = LoadLibPathAsync();
+                                        }
+                                    }));
+                                }
+                            }
                         }
 
                         foreach (var d in dirs)
