@@ -11,6 +11,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="10" Spacing="8">
             <Label x:Name="LibPathLabel" FontAttributes="Bold" />
+            <Label x:Name="BreadcrumbLabel" FontSize="12" TextColor="Gray" />
             <StackLayout x:Name="FilesStack" Spacing="4" />
         </VerticalStackLayout>
     </ScrollView>

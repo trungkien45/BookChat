@@ -21,6 +21,7 @@ namespace BookChat
         string androidTreeUriStr = null;
         string androidCurrentDocId = null;
         System.Collections.Generic.Stack<string> androidDocStack = new System.Collections.Generic.Stack<string>();
+        System.Collections.Generic.Stack<string> androidNameStack = new System.Collections.Generic.Stack<string>();
 #endif
         public MainPage()
         {
@@ -37,6 +38,7 @@ namespace BookChat
         {
             var filesStack = this.FindByName<StackLayout>("FilesStack");
             var libLabel = this.FindByName<Label>("LibPathLabel");
+            var breadcrumb = this.FindByName<Label>("BreadcrumbLabel");
 
             if (filesStack == null || libLabel == null)
             {
@@ -58,12 +60,20 @@ namespace BookChat
 #if ANDROID
             if (storedPath.StartsWith("content://"))
             {
+                // Update breadcrumb for Android: show selected tree and navigation stack
+                if (breadcrumb != null)
+                {
+                    breadcrumb.Text = androidNameStack != null && androidNameStack.Count > 0
+                        ? $"{storedPath} / {string.Join("/", androidNameStack.Reverse())}"
+                        : storedPath;
+                }
                 // Initialize android navigation state if root changed
                 if (androidTreeUriStr == null || androidTreeUriStr != storedPath)
                 {
                     androidTreeUriStr = storedPath;
                     androidCurrentDocId = null;
                     androidDocStack.Clear();
+                    androidNameStack.Clear();
                 }
 
                 try
@@ -93,6 +103,7 @@ namespace BookChat
                                 {
                                     androidCurrentDocId = rootDoc;
                                 }
+                                if (androidNameStack.Count > 0) androidNameStack.Pop();
                                 _ = LoadLibPathAsync();
                             }));
                         }
@@ -104,6 +115,7 @@ namespace BookChat
                                 if (it.IsDirectory)
                                 {
                                     androidDocStack.Push(androidCurrentDocId);
+                                    androidNameStack.Push(it.Name);
                                     androidCurrentDocId = it.DocumentId;
                                     _ = LoadLibPathAsync();
                                 }
@@ -136,6 +148,11 @@ namespace BookChat
 
                     if (System.IO.Directory.Exists(currentPath))
                     {
+                        // Update breadcrumb for filesystem
+                        if (breadcrumb != null)
+                        {
+                            breadcrumb.Text = currentPath;
+                        }
                         // Show directories and only PDF files
                         var dirs = System.IO.Directory.GetDirectories(currentPath);
                         var files = System.IO.Directory.GetFiles(currentPath)
