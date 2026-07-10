@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using BookChat.Resources;
 
 namespace BookChat
 {
@@ -31,11 +32,11 @@ namespace BookChat
             filesStack.Children.Clear();
 
             var path = Microsoft.Maui.Storage.Preferences.Get("LibPath", string.Empty);
-            libLabel.Text = string.IsNullOrEmpty(path) ? "Lib Path: (not set)" : $"Lib Path: {path}";
+            libLabel.Text = string.IsNullOrEmpty(path) ? AppResources.NoLibPathConfigured : $"{AppResources.LibPathLabel}: {path}";
 
             if (string.IsNullOrEmpty(path))
             {
-                filesStack.Children.Add(new Label { Text = "No LibPath configured. Open settings to choose a folder.", TextColor = Colors.Gray });
+                filesStack.Children.Add(new Label { Text = AppResources.NoLibPathConfigured, TextColor = Colors.Gray });
                 return;
             }
 
@@ -47,19 +48,19 @@ namespace BookChat
                     var items = await EnumerateAndroidContentUriAsync(path);
                     if (items.Count == 0)
                     {
-                        FilesStack.Children.Add(new Label { Text = "Folder is empty or could not be read.", TextColor = Colors.Gray });
+                        filesStack.Children.Add(new Label { Text = AppResources.FolderReadError, TextColor = Colors.Gray });
                     }
                     else
                     {
                         foreach (var it in items)
                         {
-                            FilesStack.Children.Add(new Label { Text = it, LineBreakMode = LineBreakMode.TailTruncation });
+                            filesStack.Children.Add(new Label { Text = it, LineBreakMode = LineBreakMode.TailTruncation });
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    FilesStack.Children.Add(new Label { Text = $"Error reading content URI: {ex.Message}", TextColor = Colors.Red });
+                    filesStack.Children.Add(new Label { Text = string.Format(AppResources.ErrorReadingContentUri, ex.Message), TextColor = Colors.Red });
                 }
                 return;
             }
@@ -74,7 +75,7 @@ namespace BookChat
 
                     if (dirs.Length == 0 && files.Length == 0)
                     {
-                        filesStack.Children.Add(new Label { Text = "Folder is empty.", TextColor = Colors.Gray });
+                        filesStack.Children.Add(new Label { Text = AppResources.FolderEmpty, TextColor = Colors.Gray });
                         return;
                     }
 
@@ -89,12 +90,12 @@ namespace BookChat
                 }
                 else
                 {
-                    filesStack.Children.Add(new Label { Text = "Path not found or not accessible.", TextColor = Colors.Red });
+                    filesStack.Children.Add(new Label { Text = AppResources.PathNotFound, TextColor = Colors.Red });
                 }
             }
             catch (Exception ex)
             {
-                filesStack.Children.Add(new Label { Text = $"Error reading path: {ex.Message}", TextColor = Colors.Red });
+                filesStack.Children.Add(new Label { Text = string.Format(AppResources.ErrorReadingPath, ex.Message), TextColor = Colors.Red });
             }
         }
 

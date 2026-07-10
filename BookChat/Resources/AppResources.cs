@@ -19,6 +19,12 @@ namespace BookChat.Resources
             { "ApplyLanguageButton", "Apply Language" },
             { "ConfigureInfo", "Configure your app settings here." },
             { "SavedLibPathMessage", "Lib Path saved." },
+            { "NoLibPathConfigured", "No LibPath configured. Open settings to choose a folder." },
+            { "FolderEmpty", "Folder is empty." },
+            { "FolderReadError", "Folder is empty or could not be read." },
+            { "PathNotFound", "Path not found or not accessible." },
+            { "ErrorReadingPath", "Error reading path: {0}" },
+            { "ErrorReadingContentUri", "Error reading content URI: {0}" },
             { "PickFolderFailed", "Could not determine full path on this platform. Please enter the folder path manually." },
             { "PleaseSelectLanguage", "Please select a language." },
             { "LanguageApplied", "Language applied. Restart the app to fully apply changes." }
@@ -36,6 +42,12 @@ namespace BookChat.Resources
             { "ApplyLanguageButton", "Áp dụng ngôn ngữ" },
             { "ConfigureInfo", "Cấu hình cài đặt ứng dụng tại đây." },
             { "SavedLibPathMessage", "Đã lưu Lib Path." },
+            ,{ "NoLibPathConfigured", "Chưa cấu hình LibPath. Mở cài đặt để chọn thư mục." }
+            ,{ "FolderEmpty", "Thư mục trống." }
+            ,{ "FolderReadError", "Thư mục trống hoặc không thể đọc." }
+            ,{ "PathNotFound", "Đường dẫn không tồn tại hoặc không thể truy cập." }
+            ,{ "ErrorReadingPath", "Lỗi đọc đường dẫn: {0}" }
+            ,{ "ErrorReadingContentUri", "Lỗi đọc URI nội dung: {0}" }
             { "PickFolderFailed", "Không thể lấy đường dẫn đầy đủ trên nền tảng này. Vui lòng nhập thủ công." },
             { "PleaseSelectLanguage", "Vui lòng chọn ngôn ngữ." },
             { "LanguageApplied", "Đã áp dụng ngôn ngữ. Khởi động lại ứng dụng để áp dụng đầy đủ." }
@@ -64,6 +76,12 @@ namespace BookChat.Resources
         public static string PickFolderFailed => Get("PickFolderFailed");
         public static string PleaseSelectLanguage => Get("PleaseSelectLanguage");
         public static string LanguageApplied => Get("LanguageApplied");
+        public static string NoLibPathConfigured => Get("NoLibPathConfigured");
+        public static string FolderEmpty => Get("FolderEmpty");
+        public static string FolderReadError => Get("FolderReadError");
+        public static string PathNotFound => Get("PathNotFound");
+        public static string ErrorReadingPath => Get("ErrorReadingPath");
+        public static string ErrorReadingContentUri => Get("ErrorReadingContentUri");
 
         static string Get(string key)
         {
