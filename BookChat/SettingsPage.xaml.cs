@@ -22,6 +22,9 @@ namespace BookChat
             var index = LanguagePicker.Items.IndexOf(lang);
             if (index >= 0)
                 LanguagePicker.SelectedIndex = index;
+
+            // Update UI texts to current culture
+            UpdateUIText();
         }
 
         private async void OnBrowseClicked(object sender, EventArgs e)
@@ -97,6 +100,8 @@ namespace BookChat
                 CultureInfo.DefaultThreadCurrentUICulture = ci;
 
                 Preferences.Set("AppLanguage", culture);
+                // Update UI strings immediately
+                UpdateUIText();
 
                 await DisplayAlert("Language", AppResources.LanguageApplied, "OK");
             }
@@ -104,6 +109,32 @@ namespace BookChat
             {
                 await DisplayAlert("Error", $"Could not apply language: {ex.Message}", "OK");
             }
+        }
+
+        private void UpdateUIText()
+        {
+            try
+            {
+                // Update labels and buttons that are defined in XAML with x:Name
+                var titleLabel = this.FindByName<Label>("SettingsTitleLabel");
+                var libLabel = this.FindByName<Label>("LibPathLabel");
+                var browseBtn = this.FindByName<Button>("BrowseButton");
+                var saveBtn = this.FindByName<Button>("SaveLibPathButton");
+                var appLangLabel = this.FindByName<Label>("AppLanguageLabel");
+                var applyBtn = this.FindByName<Button>("ApplyLanguageButton");
+                var configureLabel = this.FindByName<Label>("ConfigureInfoLabel");
+
+                if (titleLabel != null) titleLabel.Text = AppResources.SettingsTitle;
+                if (libLabel != null) libLabel.Text = AppResources.LibPathLabel;
+                if (LibPathEntry != null) LibPathEntry.Placeholder = AppResources.LibPathPlaceholder;
+                if (browseBtn != null) browseBtn.Text = AppResources.BrowseButton;
+                if (saveBtn != null) saveBtn.Text = AppResources.SaveLibPathButton;
+                if (appLangLabel != null) appLangLabel.Text = AppResources.AppLanguageLabel;
+                if (LanguagePicker != null) LanguagePicker.Title = AppResources.SelectLanguageTitle;
+                if (applyBtn != null) applyBtn.Text = AppResources.ApplyLanguageButton;
+                if (configureLabel != null) configureLabel.Text = AppResources.ConfigureInfo;
+            }
+            catch { }
         }
     }
 }

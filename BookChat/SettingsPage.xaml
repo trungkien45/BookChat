@@ -12,28 +12,28 @@
     </ContentPage.Resources>
 
     <StackLayout Padding="20" Spacing="15">
-        <Label Text="{x:Static res:AppResources.SettingsTitle}" FontSize="24" HorizontalOptions="Center" />
+        <Label x:Name="SettingsTitleLabel" Text="{x:Static res:AppResources.SettingsTitle}" FontSize="24" HorizontalOptions="Center" />
 
         <!-- Lib Path selection -->
-        <Label Text="{x:Static res:AppResources.LibPathLabel}" />
+        <Label x:Name="LibPathLabel" Text="{x:Static res:AppResources.LibPathLabel}" />
         <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
             <Entry x:Name="LibPathEntry" Grid.Column="0" Placeholder="{x:Static res:AppResources.LibPathPlaceholder}" />
-            <Button Text="{x:Static res:AppResources.BrowseButton}" Clicked="OnBrowseClicked" Grid.Column="1" />
+            <Button x:Name="BrowseButton" Text="{x:Static res:AppResources.BrowseButton}" Clicked="OnBrowseClicked" Grid.Column="1" />
         </Grid>
 
-        <Button Text="{x:Static res:AppResources.SaveLibPathButton}" Clicked="OnSaveLibPathClicked" />
+        <Button x:Name="SaveLibPathButton" Text="{x:Static res:AppResources.SaveLibPathButton}" Clicked="OnSaveLibPathClicked" />
 
         <!-- Language selection -->
-        <Label Text="{x:Static res:AppResources.AppLanguageLabel}" />
+        <Label x:Name="AppLanguageLabel" Text="{x:Static res:AppResources.AppLanguageLabel}" />
         <Picker x:Name="LanguagePicker" Title="{x:Static res:AppResources.SelectLanguageTitle}">
             <Picker.Items>
                 <x:String>en-US</x:String>
                 <x:String>vi-VN</x:String>
             </Picker.Items>
         </Picker>
-        <Button Text="{x:Static res:AppResources.ApplyLanguageButton}" Clicked="OnApplyLanguageClicked" />
+        <Button x:Name="ApplyLanguageButton" Text="{x:Static res:AppResources.ApplyLanguageButton}" Clicked="OnApplyLanguageClicked" />
 
-        <Label Text="{x:Static res:AppResources.ConfigureInfo}" />
+        <Label x:Name="ConfigureInfoLabel" Text="{x:Static res:AppResources.ConfigureInfo}" />
     </StackLayout>
 
 </ContentPage>
