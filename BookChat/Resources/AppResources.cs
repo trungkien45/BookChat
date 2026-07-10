@@ -41,13 +41,13 @@ namespace BookChat.Resources
             { "SelectLanguageTitle", "Chọn ngôn ngữ" },
             { "ApplyLanguageButton", "Áp dụng ngôn ngữ" },
             { "ConfigureInfo", "Cấu hình cài đặt ứng dụng tại đây." },
-            { "SavedLibPathMessage", "Đã lưu Lib Path." },
+            { "SavedLibPathMessage", "Đã lưu Lib Path." }
             ,{ "NoLibPathConfigured", "Chưa cấu hình LibPath. Mở cài đặt để chọn thư mục." }
             ,{ "FolderEmpty", "Thư mục trống." }
             ,{ "FolderReadError", "Thư mục trống hoặc không thể đọc." }
             ,{ "PathNotFound", "Đường dẫn không tồn tại hoặc không thể truy cập." }
             ,{ "ErrorReadingPath", "Lỗi đọc đường dẫn: {0}" }
-            ,{ "ErrorReadingContentUri", "Lỗi đọc URI nội dung: {0}" }
+            ,{ "ErrorReadingContentUri", "Lỗi đọc URI nội dung: {0}" },
             { "PickFolderFailed", "Không thể lấy đường dẫn đầy đủ trên nền tảng này. Vui lòng nhập thủ công." },
             { "PleaseSelectLanguage", "Vui lòng chọn ngôn ngữ." },
             { "LanguageApplied", "Đã áp dụng ngôn ngữ. Khởi động lại ứng dụng để áp dụng đầy đủ." }
