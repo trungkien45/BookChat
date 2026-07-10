@@ -2,6 +2,7 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using BookChat.Resources;
+using System.Linq;
 
 namespace BookChat
 {
@@ -52,9 +53,12 @@ namespace BookChat
                     }
                     else
                     {
+                        // Render directories (marked with trailing '/') and PDF files
                         foreach (var it in items)
                         {
-                            filesStack.Children.Add(new Label { Text = it, LineBreakMode = LineBreakMode.TailTruncation });
+                            var isFolder = it.EndsWith("/");
+                            var displayName = isFolder ? it.TrimEnd('/') : it;
+                            filesStack.Children.Add(CreateItemView(displayName, isFolder));
                         }
                     }
                 }
@@ -70,8 +74,11 @@ namespace BookChat
             {
                 if (System.IO.Directory.Exists(path))
                 {
+                    // Show directories and only PDF files
                     var dirs = System.IO.Directory.GetDirectories(path);
-                    var files = System.IO.Directory.GetFiles(path);
+                    var files = System.IO.Directory.GetFiles(path)
+                        .Where(f => string.Equals(System.IO.Path.GetExtension(f), ".pdf", StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
 
                     if (dirs.Length == 0 && files.Length == 0)
                     {
@@ -128,9 +135,16 @@ namespace BookChat
                                 if (!string.IsNullOrEmpty(name))
                                 {
                                     if (mime == "vnd.android.document/directory")
+                                    {
+                                        // include directories (mark with trailing slash)
                                         list.Add(name + "/");
-                                    else
+                                    }
+                                    else if (string.Equals(mime, "application/pdf", StringComparison.OrdinalIgnoreCase) ||
+                                        name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        // include PDF files only
                                         list.Add(name);
+                                    }
                                 }
                             }
                         }
