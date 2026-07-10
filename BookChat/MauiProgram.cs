@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Globalization;
+using Microsoft.Maui.Storage;
 
 namespace BookChat
 {
@@ -16,8 +18,21 @@ namespace BookChat
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
 #endif
+
+            // Apply saved app language (if any) so resources use correct culture on startup
+            try
+            {
+                var savedLang = Preferences.Get("AppLanguage", string.Empty);
+                if (!string.IsNullOrWhiteSpace(savedLang))
+                {
+                    var ci = new CultureInfo(savedLang);
+                    CultureInfo.DefaultThreadCurrentCulture = ci;
+                    CultureInfo.DefaultThreadCurrentUICulture = ci;
+                }
+            }
+            catch { }
 
             return builder.Build();
         }
