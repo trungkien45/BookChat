@@ -159,78 +159,79 @@ namespace BookChat
                             .Where(f => string.Equals(System.IO.Path.GetExtension(f), ".pdf", StringComparison.OrdinalIgnoreCase))
                             .ToArray();
 
-                        if (dirs.Length == 0 && files.Length == 0)
-                        {
-                            filesStack.Children.Add(new Label { Text = AppResources.FolderEmpty, TextColor = Colors.Gray });
-                            return;
-                        }
-
                         // add parent link if not at root
                         if (!string.IsNullOrEmpty(rootPath))
                         {
-                        try
-                        {
-                            var rootFull = System.IO.Path.GetFullPath(rootPath)
-                                .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
-                            var currentFull = System.IO.Path.GetFullPath(currentPath ?? rootPath)
-                                .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
-
-                            // Debug breadcrumb (optional): show normalized paths in breadcrumb if available
-                            if (breadcrumb != null)
-                            {
-                                breadcrumb.Text = currentFull;
-                            }
-
-                            // Show parent entry when currentFull is a subpath of rootFull and not equal
-                            if (!string.Equals(currentFull, rootFull, StringComparison.OrdinalIgnoreCase) &&
-                                currentFull.StartsWith(rootFull + System.IO.Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                            {
-                                filesStack.Children.Add(CreateItemView("..", true, () =>
-                                {
-                                    var parent = System.IO.Directory.GetParent(currentPath);
-                                    if (parent != null)
-                                    {
-                                        currentPath = parent.FullName;
-                                        _ = LoadLibPathAsync();
-                                    }
-                                }));
-                            }
-                        }
-                        catch
-                        {
-                            // Fallback: show parent if parent folder exists and is different
                             try
                             {
-                                var parent = System.IO.Directory.GetParent(currentPath);
-                                if (parent != null && !string.Equals(parent.FullName, rootPath, StringComparison.OrdinalIgnoreCase))
+                                var rootFull = System.IO.Path.GetFullPath(rootPath)
+                                    .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+                                var currentFull = System.IO.Path.GetFullPath(currentPath ?? rootPath)
+                                    .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar);
+
+                                // Debug breadcrumb (optional): show normalized paths in breadcrumb if available
+                                if (breadcrumb != null)
+                                {
+                                    breadcrumb.Text = currentFull;
+                                }
+
+                                // Show parent entry when currentFull is a subpath of rootFull and not equal
+                                if (!string.Equals(currentFull, rootFull, StringComparison.OrdinalIgnoreCase) &&
+                                    currentFull.StartsWith(rootFull + System.IO.Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
                                 {
                                     filesStack.Children.Add(CreateItemView("..", true, () =>
                                     {
-                                        currentPath = parent.FullName;
-                                        _ = LoadLibPathAsync();
+                                        var parent = System.IO.Directory.GetParent(currentPath);
+                                        if (parent != null)
+                                        {
+                                            currentPath = parent.FullName;
+                                            _ = LoadLibPathAsync();
+                                        }
                                     }));
                                 }
                             }
-                            catch { }
-                        }
+                            catch
+                            {
+                                // Fallback: show parent if parent folder exists and is different
+                                try
+                                {
+                                    var parent = System.IO.Directory.GetParent(currentPath);
+                                    if (parent != null && !string.Equals(parent.FullName, rootPath, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        filesStack.Children.Add(CreateItemView("..", true, () =>
+                                        {
+                                            currentPath = parent.FullName;
+                                            _ = LoadLibPathAsync();
+                                        }));
+                                    }
+                                }
+                                catch { }
+                            }
                         }
 
-                        foreach (var d in dirs)
+                        if (dirs.Length == 0 && files.Length == 0)
                         {
-                            var full = d;
-                            filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(d), true, () =>
-                            {
-                                currentPath = full;
-                                _ = LoadLibPathAsync();
-                            }));
+                            filesStack.Children.Add(new Label { Text = AppResources.FolderEmpty, TextColor = Colors.Gray });
                         }
-                        foreach (var f in files)
+                        else
                         {
-                            var full = f;
-                            filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(f), false, () =>
+                            foreach (var d in dirs)
                             {
-                                // TODO: open file or handle selection
-                            }));
+                                var full = d;
+                                filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(d), true, () =>
+                                {
+                                    currentPath = full;
+                                    _ = LoadLibPathAsync();
+                                }));
+                            }
+                            foreach (var f in files)
+                            {
+                                var full = f;
+                                filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(f), false, () =>
+                                {
+                                    // TODO: open file or handle selection
+                                }));
+                            }
                         }
                     }
                     else
