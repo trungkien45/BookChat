@@ -8,6 +8,20 @@ namespace BookChat
 {
     public partial class MainPage : ContentPage
     {
+#if ANDROID
+        // Current navigation state
+        string currentPath = null; // for filesystem navigation
+        string rootPath = null;
+#else
+        // Current navigation state
+        string currentPath = null; // for filesystem navigation
+        string rootPath = null;
+#endif
+#if ANDROID
+        string androidTreeUriStr = null;
+        string androidCurrentDocId = null;
+        System.Collections.Generic.Stack<string> androidDocStack = new System.Collections.Generic.Stack<string>();
+#endif
         public MainPage()
         {
             InitializeComponent();
@@ -32,33 +46,72 @@ namespace BookChat
 
             filesStack.Children.Clear();
 
-            var path = Microsoft.Maui.Storage.Preferences.Get("LibPath", string.Empty);
-            libLabel.Text = string.IsNullOrEmpty(path) ? AppResources.NoLibPathConfigured : $"{AppResources.LibPathLabel}: {path}";
+            var storedPath = Microsoft.Maui.Storage.Preferences.Get("LibPath", string.Empty);
+            libLabel.Text = string.IsNullOrEmpty(storedPath) ? AppResources.NoLibPathConfigured : $"{AppResources.LibPathLabel}: {storedPath}";
 
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(storedPath))
             {
                 filesStack.Children.Add(new Label { Text = AppResources.NoLibPathConfigured, TextColor = Colors.Gray });
                 return;
             }
 
 #if ANDROID
-            if (path.StartsWith("content://"))
+            if (storedPath.StartsWith("content://"))
             {
+                // Initialize android navigation state if root changed
+                if (androidTreeUriStr == null || androidTreeUriStr != storedPath)
+                {
+                    androidTreeUriStr = storedPath;
+                    androidCurrentDocId = null;
+                    androidDocStack.Clear();
+                }
+
                 try
                 {
-                    var items = await EnumerateAndroidContentUriAsync(path);
+                    var uri = Android.Net.Uri.Parse(androidTreeUriStr);
+                    if (androidCurrentDocId == null)
+                        androidCurrentDocId = Android.Provider.DocumentsContract.GetTreeDocumentId(uri);
+
+                    var items = await EnumerateAndroidContentUriAsync(androidTreeUriStr, androidCurrentDocId);
                     if (items.Count == 0)
                     {
                         filesStack.Children.Add(new Label { Text = AppResources.FolderReadError, TextColor = Colors.Gray });
                     }
                     else
                     {
-                        // Render directories (marked with trailing '/') and PDF files
+                        // Show parent .. when not at tree root
+                        var rootDoc = Android.Provider.DocumentsContract.GetTreeDocumentId(uri);
+                        if (androidCurrentDocId != rootDoc || androidDocStack.Count > 0)
+                        {
+                            filesStack.Children.Add(CreateItemView("..", true, () =>
+                            {
+                                if (androidDocStack.Count > 0)
+                                {
+                                    androidCurrentDocId = androidDocStack.Pop();
+                                }
+                                else
+                                {
+                                    androidCurrentDocId = rootDoc;
+                                }
+                                _ = LoadLibPathAsync();
+                            }));
+                        }
+
                         foreach (var it in items)
                         {
-                            var isFolder = it.EndsWith("/");
-                            var displayName = isFolder ? it.TrimEnd('/') : it;
-                            filesStack.Children.Add(CreateItemView(displayName, isFolder));
+                            filesStack.Children.Add(CreateItemView(it.Name, it.IsDirectory, () =>
+                            {
+                                if (it.IsDirectory)
+                                {
+                                    androidDocStack.Push(androidCurrentDocId);
+                                    androidCurrentDocId = it.DocumentId;
+                                    _ = LoadLibPathAsync();
+                                }
+                                else
+                                {
+                                    // TODO: open file or handle selection
+                                }
+                            }));
                         }
                     }
                 }
@@ -72,32 +125,65 @@ namespace BookChat
 
             try
             {
-                if (System.IO.Directory.Exists(path))
+                // Filesystem navigation
+                if (!storedPath.StartsWith("content://"))
                 {
-                    // Show directories and only PDF files
-                    var dirs = System.IO.Directory.GetDirectories(path);
-                    var files = System.IO.Directory.GetFiles(path)
-                        .Where(f => string.Equals(System.IO.Path.GetExtension(f), ".pdf", StringComparison.OrdinalIgnoreCase))
-                        .ToArray();
-
-                    if (dirs.Length == 0 && files.Length == 0)
+                    if (rootPath == null || rootPath != storedPath)
                     {
-                        filesStack.Children.Add(new Label { Text = AppResources.FolderEmpty, TextColor = Colors.Gray });
-                        return;
+                        rootPath = storedPath;
+                        currentPath = rootPath;
                     }
 
-                    foreach (var d in dirs)
+                    if (System.IO.Directory.Exists(currentPath))
                     {
-                        filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(d), true));
+                        // Show directories and only PDF files
+                        var dirs = System.IO.Directory.GetDirectories(currentPath);
+                        var files = System.IO.Directory.GetFiles(currentPath)
+                            .Where(f => string.Equals(System.IO.Path.GetExtension(f), ".pdf", StringComparison.OrdinalIgnoreCase))
+                            .ToArray();
+
+                        if (dirs.Length == 0 && files.Length == 0)
+                        {
+                            filesStack.Children.Add(new Label { Text = AppResources.FolderEmpty, TextColor = Colors.Gray });
+                            return;
+                        }
+
+                        // add parent link if not at root
+                        if (!string.IsNullOrEmpty(rootPath) && !string.Equals(currentPath?.TrimEnd(System.IO.Path.DirectorySeparatorChar), rootPath?.TrimEnd(System.IO.Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+                        {
+                            filesStack.Children.Add(CreateItemView("..", true, () =>
+                            {
+                                var parent = System.IO.Directory.GetParent(currentPath);
+                                if (parent != null)
+                                {
+                                    currentPath = parent.FullName;
+                                    _ = LoadLibPathAsync();
+                                }
+                            }));
+                        }
+
+                        foreach (var d in dirs)
+                        {
+                            var full = d;
+                            filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(d), true, () =>
+                            {
+                                currentPath = full;
+                                _ = LoadLibPathAsync();
+                            }));
+                        }
+                        foreach (var f in files)
+                        {
+                            var full = f;
+                            filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(f), false, () =>
+                            {
+                                // TODO: open file or handle selection
+                            }));
+                        }
                     }
-                    foreach (var f in files)
+                    else
                     {
-                        filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(f), false));
+                        filesStack.Children.Add(new Label { Text = AppResources.PathNotFound, TextColor = Colors.Red });
                     }
-                }
-                else
-                {
-                    filesStack.Children.Add(new Label { Text = AppResources.PathNotFound, TextColor = Colors.Red });
                 }
             }
             catch (Exception ex)
@@ -107,43 +193,47 @@ namespace BookChat
         }
 
 #if ANDROID
-        private System.Threading.Tasks.Task<System.Collections.Generic.List<string>> EnumerateAndroidContentUriAsync(string uriStr)
+        private class AndroidEntry
+        {
+            public string Name { get; set; }
+            public string DocumentId { get; set; }
+            public bool IsDirectory { get; set; }
+        }
+
+        private System.Threading.Tasks.Task<System.Collections.Generic.List<AndroidEntry>> EnumerateAndroidContentUriAsync(string uriStr, string parentDocId)
         {
             return System.Threading.Tasks.Task.Run(() =>
             {
-                var list = new System.Collections.Generic.List<string>();
+                var list = new System.Collections.Generic.List<AndroidEntry>();
                 try
                 {
                     var uri = Android.Net.Uri.Parse(uriStr);
                     var resolver = Android.App.Application.Context.ContentResolver;
 
-                    // Build children URI
-                    var treeDocId = Android.Provider.DocumentsContract.GetTreeDocumentId(uri);
-                    var childrenUri = Android.Provider.DocumentsContract.BuildChildDocumentsUriUsingTree(uri, treeDocId);
+                    var childrenUri = Android.Provider.DocumentsContract.BuildChildDocumentsUriUsingTree(uri, parentDocId);
 
-                    string[] projection = new[] { Android.Provider.DocumentsContract.Document.ColumnDisplayName, Android.Provider.DocumentsContract.Document.ColumnMimeType };
+                    string[] projection = new[] { Android.Provider.DocumentsContract.Document.ColumnDocumentId, Android.Provider.DocumentsContract.Document.ColumnDisplayName, Android.Provider.DocumentsContract.Document.ColumnMimeType };
                     using (var cursor = resolver.Query(childrenUri, projection, null, null, null))
                     {
                         if (cursor != null)
                         {
+                            int idIndex = cursor.GetColumnIndex(Android.Provider.DocumentsContract.Document.ColumnDocumentId);
                             int nameIndex = cursor.GetColumnIndex(Android.Provider.DocumentsContract.Document.ColumnDisplayName);
                             int mimeIndex = cursor.GetColumnIndex(Android.Provider.DocumentsContract.Document.ColumnMimeType);
                             while (cursor.MoveToNext())
                             {
+                                var docId = cursor.GetString(idIndex);
                                 var name = cursor.GetString(nameIndex);
                                 var mime = cursor.GetString(mimeIndex);
                                 if (!string.IsNullOrEmpty(name))
                                 {
                                     if (mime == "vnd.android.document/directory")
                                     {
-                                        // include directories (mark with trailing slash)
-                                        list.Add(name + "/");
+                                        list.Add(new AndroidEntry { Name = name, DocumentId = docId, IsDirectory = true });
                                     }
-                                    else if (string.Equals(mime, "application/pdf", StringComparison.OrdinalIgnoreCase) ||
-                                        name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                    else if (string.Equals(mime, "application/pdf", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        // include PDF files only
-                                        list.Add(name);
+                                        list.Add(new AndroidEntry { Name = name, DocumentId = docId, IsDirectory = false });
                                     }
                                 }
                             }
@@ -157,7 +247,7 @@ namespace BookChat
 #endif
 
         // Create a small row showing an icon (emoji) and the name. Using emoji avoids adding image assets.
-        private View CreateItemView(string name, bool isFolder)
+        private View CreateItemView(string name, bool isFolder, Action onTapped = null)
         {
             var icon = isFolder ? "📁" : "📄";
             var iconLabel = new Label
@@ -165,7 +255,8 @@ namespace BookChat
                 Text = icon,
                 FontSize = 16,
                 VerticalTextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 8, 0)
+                Margin = new Thickness(0, 0, 8, 0),
+                TextColor = isFolder ? Colors.Black : Colors.Red // PDFs show red icon
             };
 
             var nameLabel = new Label
@@ -175,11 +266,20 @@ namespace BookChat
                 LineBreakMode = LineBreakMode.TailTruncation
             };
 
-            return new HorizontalStackLayout
+            var row = new HorizontalStackLayout
             {
                 Spacing = 4,
                 Children = { iconLabel, nameLabel }
             };
+
+            if (onTapped != null)
+            {
+                var tap = new TapGestureRecognizer();
+                tap.Tapped += (s, e) => onTapped();
+                row.GestureRecognizers.Add(tap);
+            }
+
+            return row;
         }
 
         private async void OnSettingsClicked(object sender, EventArgs e)
