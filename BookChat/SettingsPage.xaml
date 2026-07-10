@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:res="clr-namespace:BookChat.Resources"
+             x:Class="BookChat.SettingsPage"
+             Title="Settings">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Reference AppResources for x:Static usage in XAML -->
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <StackLayout Padding="20" Spacing="15">
+        <Label Text="{x:Static res:AppResources.SettingsTitle}" FontSize="24" HorizontalOptions="Center" />
+
+        <!-- Lib Path selection -->
+        <Label Text="{x:Static res:AppResources.LibPathLabel}" />
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+            <Entry x:Name="LibPathEntry" Grid.Column="0" Placeholder="{x:Static res:AppResources.LibPathPlaceholder}" />
+            <Button Text="{x:Static res:AppResources.BrowseButton}" Clicked="OnBrowseClicked" Grid.Column="1" />
+        </Grid>
+
+        <Button Text="{x:Static res:AppResources.SaveLibPathButton}" Clicked="OnSaveLibPathClicked" />
+
+        <!-- Language selection -->
+        <Label Text="{x:Static res:AppResources.AppLanguageLabel}" />
+        <Picker x:Name="LanguagePicker" Title="{x:Static res:AppResources.SelectLanguageTitle}">
+            <Picker.Items>
+                <x:String>en-US</x:String>
+                <x:String>vi-VN</x:String>
+            </Picker.Items>
+        </Picker>
+        <Button Text="{x:Static res:AppResources.ApplyLanguageButton}" Clicked="OnApplyLanguageClicked" />
+
+        <Label Text="{x:Static res:AppResources.ConfigureInfo}" />
+    </StackLayout>
+
+</ContentPage>
