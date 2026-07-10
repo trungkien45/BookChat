@@ -140,7 +140,8 @@ namespace BookChat
                 return list;
             });
         }
-#if NET6_0_OR_GREATER
+#endif
+
         // Create a small row showing an icon (emoji) and the name. Using emoji avoids adding image assets.
         private View CreateItemView(string name, bool isFolder)
         {
@@ -166,15 +167,6 @@ namespace BookChat
                 Children = { iconLabel, nameLabel }
             };
         }
-#else
-        private View CreateItemView(string name, bool isFolder)
-        {
-            // Fallback: simple text with slash for folder
-            var text = isFolder ? name + "/" : name;
-            return new Label { Text = text };
-        }
-#endif
-#endif
 
         private async void OnSettingsClicked(object sender, EventArgs e)
         {
