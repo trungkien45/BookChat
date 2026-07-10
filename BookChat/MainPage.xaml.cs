@@ -15,14 +15,23 @@
 
         private async System.Threading.Tasks.Task LoadLibPathAsync()
         {
-            FilesStack.Children.Clear();
+            var filesStack = this.FindByName<StackLayout>("FilesStack");
+            var libLabel = this.FindByName<Label>("LibPathLabel");
+
+            if (filesStack == null || libLabel == null)
+            {
+                // If names aren't found in XAML, abort safely.
+                return;
+            }
+
+            filesStack.Children.Clear();
 
             var path = Microsoft.Maui.Storage.Preferences.Get("LibPath", string.Empty);
-            LibPathLabel.Text = string.IsNullOrEmpty(path) ? "Lib Path: (not set)" : $"Lib Path: {path}";
+            libLabel.Text = string.IsNullOrEmpty(path) ? "Lib Path: (not set)" : $"Lib Path: {path}";
 
             if (string.IsNullOrEmpty(path))
             {
-                FilesStack.Children.Add(new Label { Text = "No LibPath configured. Open settings to choose a folder.", TextColor = Colors.Gray });
+                filesStack.Children.Add(new Label { Text = "No LibPath configured. Open settings to choose a folder.", TextColor = Colors.Gray });
                 return;
             }
 
@@ -61,27 +70,27 @@
 
                     if (dirs.Length == 0 && files.Length == 0)
                     {
-                        FilesStack.Children.Add(new Label { Text = "Folder is empty.", TextColor = Colors.Gray });
+                        filesStack.Children.Add(new Label { Text = "Folder is empty.", TextColor = Colors.Gray });
                         return;
                     }
 
                     foreach (var d in dirs)
                     {
-                        FilesStack.Children.Add(new Label { Text = System.IO.Path.GetFileName(d) + "/", FontAttributes = FontAttributes.Bold });
+                        filesStack.Children.Add(new Label { Text = System.IO.Path.GetFileName(d) + "/", FontAttributes = FontAttributes.Bold });
                     }
                     foreach (var f in files)
                     {
-                        FilesStack.Children.Add(new Label { Text = System.IO.Path.GetFileName(f) });
+                        filesStack.Children.Add(new Label { Text = System.IO.Path.GetFileName(f) });
                     }
                 }
                 else
                 {
-                    FilesStack.Children.Add(new Label { Text = "Path not found or not accessible.", TextColor = Colors.Red });
+                    filesStack.Children.Add(new Label { Text = "Path not found or not accessible.", TextColor = Colors.Red });
                 }
             }
             catch (Exception ex)
             {
-                FilesStack.Children.Add(new Label { Text = $"Error reading path: {ex.Message}", TextColor = Colors.Red });
+                filesStack.Children.Add(new Label { Text = $"Error reading path: {ex.Message}", TextColor = Colors.Red });
             }
         }
 
