@@ -81,11 +81,11 @@ namespace BookChat
 
                     foreach (var d in dirs)
                     {
-                        filesStack.Children.Add(new Label { Text = System.IO.Path.GetFileName(d) + "/", FontAttributes = FontAttributes.Bold });
+                        filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(d), true));
                     }
                     foreach (var f in files)
                     {
-                        filesStack.Children.Add(new Label { Text = System.IO.Path.GetFileName(f) });
+                        filesStack.Children.Add(CreateItemView(System.IO.Path.GetFileName(f), false));
                     }
                 }
                 else
@@ -140,6 +140,40 @@ namespace BookChat
                 return list;
             });
         }
+#if NET6_0_OR_GREATER
+        // Create a small row showing an icon (emoji) and the name. Using emoji avoids adding image assets.
+        private View CreateItemView(string name, bool isFolder)
+        {
+            var icon = isFolder ? "📁" : "📄";
+            var iconLabel = new Label
+            {
+                Text = icon,
+                FontSize = 16,
+                VerticalTextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 8, 0)
+            };
+
+            var nameLabel = new Label
+            {
+                Text = name,
+                VerticalTextAlignment = TextAlignment.Center,
+                LineBreakMode = LineBreakMode.TailTruncation
+            };
+
+            return new HorizontalStackLayout
+            {
+                Spacing = 4,
+                Children = { iconLabel, nameLabel }
+            };
+        }
+#else
+        private View CreateItemView(string name, bool isFolder)
+        {
+            // Fallback: simple text with slash for folder
+            var text = isFolder ? name + "/" : name;
+            return new Label { Text = text };
+        }
+#endif
 #endif
 
         private async void OnSettingsClicked(object sender, EventArgs e)
