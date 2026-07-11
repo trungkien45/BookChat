@@ -13,12 +13,12 @@ namespace BookChat
             InitializeComponent();
 
             // Load saved lib path
-            var saved = Preferences.Get("LibPath", string.Empty);
+            var saved = Preferences.Get(Const.libPathPreferenceKey, string.Empty);
             if (!string.IsNullOrEmpty(saved))
                 LibPathEntry.Text = saved;
 
             // Load saved language
-            var lang = Preferences.Get("AppLanguage", CultureInfo.CurrentUICulture.Name);
+            var lang = Preferences.Get(Const.appLanguagePreferenceKey, CultureInfo.CurrentUICulture.Name);
             var index = LanguagePicker.Items.IndexOf(lang);
             if (index >= 0)
                 LanguagePicker.SelectedIndex = index;
@@ -43,14 +43,14 @@ namespace BookChat
                     }
                     else
                     {
-                        await DisplayAlert("Info", AppResources.PickFolderFailed, "OK");
+                        await DisplayAlertAsync(AppResources.Info, AppResources.PickFolderFailed, AppResources.Ok);
                     }
                     return;
                 }
 #endif
 
                 // Cross-platform fallback: pick a file and use its directory
-                var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Pick any file inside the folder you want to use" });
+                var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = AppResources.FolderPickTitle });
                 if (result != null)
                 {
                     var full = result.FullPath;
@@ -61,34 +61,34 @@ namespace BookChat
                     }
                     else
                     {
-                        await DisplayAlert("Info", AppResources.PickFolderFailed, "OK");
+                        await DisplayAlertAsync(AppResources.Info, AppResources.PickFolderFailed, AppResources.Ok);
                     }
                 }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Folder pick failed: {ex.Message}", "OK");
+                await DisplayAlertAsync(AppResources.Error, string.Format(AppResources.FolderPickFailedMessage, ex.Message), AppResources.Ok);
             }
         }
 
-        private void OnSaveLibPathClicked(object sender, EventArgs e)
+        private async void OnSaveLibPathClicked(object sender, EventArgs e)
         {
             var path = LibPathEntry.Text ?? string.Empty;
             if (string.IsNullOrWhiteSpace(path))
             {
-                DisplayAlert("Error", "Lib Path is empty. Please enter or pick a folder.", "OK");
+                await DisplayAlertAsync(AppResources.Error, AppResources.LibPathEmptyMessage, AppResources.Ok);
                 return;
             }
 
-            Preferences.Set("LibPath", path);
-            DisplayAlert(AppResources.SaveLibPathButton, AppResources.SavedLibPathMessage, "OK");
+            Preferences.Set(Const.libPathPreferenceKey, path);
+            await DisplayAlertAsync(AppResources.SaveLibPathButton, AppResources.SavedLibPathMessage, AppResources.Ok);
         }
 
         private async void OnApplyLanguageClicked(object sender, EventArgs e)
         {
             if (LanguagePicker.SelectedIndex < 0)
             {
-                await DisplayAlert("Info", AppResources.PleaseSelectLanguage, "OK");
+                await DisplayAlertAsync(AppResources.Info, AppResources.PleaseSelectLanguage, AppResources.Ok);
                 return;
             }
 
@@ -99,15 +99,15 @@ namespace BookChat
                 CultureInfo.DefaultThreadCurrentCulture = ci;
                 CultureInfo.DefaultThreadCurrentUICulture = ci;
 
-                Preferences.Set("AppLanguage", culture);
+                Preferences.Set(Const.appLanguagePreferenceKey, culture);
                 // Update UI strings immediately
-                UpdateUIText();
+                //UpdateUIText();
 
-                await DisplayAlert("Language", AppResources.LanguageApplied, "OK");
+                await DisplayAlertAsync(AppResources.Language, AppResources.LanguageApplied, AppResources.Ok);
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Could not apply language: {ex.Message}", "OK");
+                await DisplayAlertAsync(AppResources.Error, string.Format(AppResources.ApplyLanguageError, ex.Message), AppResources.Ok);
             }
         }
 
