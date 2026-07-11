@@ -98,7 +98,7 @@ namespace BookChat.Resources
             { "NewFolderTitle", "Tạo thư mục mới" },
             { "NewFolderPrompt", "Tên thư mục:" },
             { "NewFolderPlaceholder", "Thư mục mới" },
-            { "MenuCloseView", "Đóng view" },
+            { "MenuCloseView", "Đóng khung" },
             { "RenameTitle", "Đổi tên" },
             { "RenamePrompt", "Tên mới:" },
             { "ConfirmDeleteMessage", "Xóa '{0}'?" },
