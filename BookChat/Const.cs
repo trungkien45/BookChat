@@ -17,6 +17,6 @@
         public const string bookEmojiGlyph = "📙";
         public const char breadcrumbSeparatorChar = '/';
         public const string appLanguagePreferenceKey = "AppLanguage";
-        
+        public const string pipeSeparator = "|";
     }
 }

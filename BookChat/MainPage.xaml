@@ -7,29 +7,33 @@
         <!-- Use a raster/vector image placed in Resources/Images named 'gear.png' (or gear.svg) -->
         <ToolbarItem IconImageSource="gear.png" Clicked="OnSettingsClicked" Priority="0" Order="Primary" />
     </ContentPage.ToolbarItems>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Label x:Name="LibPathLabel" Grid.Row="0" FontAttributes="Bold" />
+        <Grid x:Name="MainGrid" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-    <Grid x:Name="MainGrid">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
+            <!-- Primary pane -->
+            <ScrollView Grid.Column="0" x:Name="PrimaryScroll">
+                <VerticalStackLayout Padding="10" Spacing="8">
+                    <Label x:Name="BreadcrumbLabel" FontSize="12" TextColor="Gray" />
+                    <StackLayout x:Name="FilesStack" Spacing="4" />
+                </VerticalStackLayout>
+            </ScrollView>
 
-        <!-- Primary pane -->
-        <ScrollView Grid.Column="0" x:Name="PrimaryScroll">
-            <VerticalStackLayout Padding="10" Spacing="8">
-                <Label x:Name="LibPathLabel" FontAttributes="Bold" />
-                <Label x:Name="BreadcrumbLabel" FontSize="12" TextColor="Gray" />
-                <StackLayout x:Name="FilesStack" Spacing="4" />
-            </VerticalStackLayout>
-        </ScrollView>
-
-        <!-- Secondary pane (split view). Initially hidden. -->
-        <ScrollView Grid.Column="1" x:Name="SecondaryScroll" IsVisible="False" BackgroundColor="Transparent">
-            <VerticalStackLayout Padding="10" Spacing="8">
-                <Label x:Name="SecondaryBreadcrumbLabel" FontSize="12" TextColor="Gray" />
-                <StackLayout x:Name="SecondaryFilesStack" Spacing="4" />
-            </VerticalStackLayout>
-        </ScrollView>
+            <!-- Secondary pane (split view). Initially hidden. -->
+            <ScrollView Grid.Column="1" x:Name="SecondaryScroll" IsVisible="False" BackgroundColor="Transparent">
+                <VerticalStackLayout Padding="10" Spacing="8">
+                    <Label x:Name="SecondaryBreadcrumbLabel" FontSize="12" TextColor="Gray" />
+                    <StackLayout x:Name="SecondaryFilesStack" Spacing="4" />
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
     </Grid>
-
 </ContentPage>

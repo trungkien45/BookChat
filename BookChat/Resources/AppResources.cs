@@ -90,7 +90,7 @@ namespace BookChat.Resources
             { "MenuOpen", "Mở" },
             { "MenuDelete", "Xóa" },
             { "MenuRename", "Đổi tên" },
-            { "MenuOpenInNewView", "Mở trong cửa sổ mới" },
+            { "MenuOpenInNewView", "Mở trong khung mới" },
             { "MenuNewFolder", "Tạo thư mục mới" },
             { "CreateFolderNotSupported", "Không hỗ trợ" },
             { "CreateFolderNotSupportedMessage", "Không hỗ trợ tạo thư mục tại vị trí này." },

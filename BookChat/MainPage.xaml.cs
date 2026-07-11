@@ -51,7 +51,7 @@ namespace BookChat
         {
             try
             {
-                secondaryRootPath = path;
+                secondaryRootPath = rootPath;
                 secondaryCurrentPath = path;
 
                 SecondaryFilesStack.Children.Clear();
@@ -443,11 +443,18 @@ namespace BookChat
             foreach (var file in Directory.GetFiles(currentPath, Const.pdfFilePattern))
             {
                 FilesStack.Children.Add(
-                    CreateItemView(Path.GetFileName(file), false, null, file));
+                    CreateItemView(Path.GetFileName(file), false, () => onOpen(file), file));
                 count++;
             }
             return count;
         }
+
+        private void onOpen(string file)
+        {
+            //Todo: Implement the logic to open the PDF file
+            //throw new NotImplementedException();
+        }
+
         private void InitializeNavigation(string storedPath)
         {
             if (rootPath == storedPath)
@@ -526,7 +533,11 @@ namespace BookChat
                     androidCurrentDocId = item.DocumentId;
                     _ = LoadLibPathAsync();
                 }
-            }, androidTreeUriStr + "|" + item.DocumentId));
+                else
+                {
+                    onOpen(androidTreeUriStr + Const.pipeSeparator + item.DocumentId);
+                }
+            }, androidTreeUriStr + Const.pipeSeparator + item.DocumentId));
         }
 
         private void AddAndroidParent(Android.Net.Uri uri)
@@ -752,7 +763,7 @@ namespace BookChat
                     if (!string.IsNullOrEmpty(androidTreeUriStr))
                     {
                         // use tree uri + current doc id so ShowContextMenuAsync sees a content:// marker
-                        fp = androidTreeUriStr + (string.IsNullOrEmpty(androidCurrentDocId) ? string.Empty : "|" + androidCurrentDocId);
+                        fp = androidTreeUriStr + (string.IsNullOrEmpty(androidCurrentDocId) ? string.Empty : Const.pipeSeparator + androidCurrentDocId);
                     }
                     else
                     {
@@ -814,6 +825,7 @@ namespace BookChat
                     if (!string.IsNullOrEmpty(fullPath) && fullPath.StartsWith(Const.androidContentUriPrefix, StringComparison.OrdinalIgnoreCase))
                     {
                         // Opening a new OS window for content:// locations is not supported in this app.
+                        //TODO: If needed, implement opening a new window for content:// locations on Android using platform-specific APIs.
                         await DisplayAlertAsync(AppResources.Info, AppResources.OpenInNewViewNotSupported, AppResources.Ok);
                     }
                     else
@@ -837,6 +849,11 @@ namespace BookChat
                 else if (action == AppResources.MenuMoveNewView && isFolder)
                 {
                     // Move the folder to a new OS window (if supported)
+                    //TODO: Implement moving to a new view if needed
+                }
+                else if (action == AppResources.MenuMoveNewView && !isFolder)
+                {
+                    // Move the file to a new OS window (if supported)
                     //TODO: Implement moving to a new view if needed
                 }
             }
@@ -951,7 +968,7 @@ namespace BookChat
                     return false;
                 }
 
-                var result = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: name);
+                var result = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: Path.GetFileNameWithoutExtension(name)) + Const.pdfFileExtension;
                 if (string.IsNullOrEmpty(result)) return false;
 
                 try
@@ -988,7 +1005,7 @@ namespace BookChat
 #endif
             }
 
-            var resultFs = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: name);
+            var resultFs = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: Path.GetFileNameWithoutExtension(name)) + Const.pdfFileExtension;
             if (string.IsNullOrEmpty(resultFs)) return false;
 
             var parent = Path.GetDirectoryName(fullPath) ?? string.Empty;
