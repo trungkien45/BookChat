@@ -7,6 +7,7 @@
             InitializeComponent();
             // Register route for SettingsPage so Shell navigation can use its name
             Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
+            Routing.RegisterRoute(nameof(ViewBook), typeof(ViewBook));
         }
     }
 }

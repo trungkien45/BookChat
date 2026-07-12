@@ -19,6 +19,10 @@ namespace BookChat
         string androidCurrentDocId = null;
         System.Collections.Generic.Stack<string> androidDocStack = new();
         System.Collections.Generic.Stack<string> androidNameStack = new();
+        string secondaryAndroidTreeUriStr = null;
+        string secondaryAndroidCurrentDocId = null;
+        System.Collections.Generic.Stack<string> secondaryAndroidDocStack = new();
+        System.Collections.Generic.Stack<string> secondaryAndroidNameStack = new();
 #endif
         public MainPage()
         {
@@ -55,6 +59,17 @@ namespace BookChat
                 secondaryCurrentPath = path;
 
                 SecondaryFilesStack.Children.Clear();
+
+#if ANDROID
+                if (!string.IsNullOrEmpty(path) && path.StartsWith(Const.androidContentUriPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    SecondaryScroll.IsVisible = true;
+                    isSecondaryViewVisible = true;
+                    ApplySplitLayout(MainGrid.Width, MainGrid.Height);
+                    _ = LoadSecondaryPathAsync();
+                    return;
+                }
+#endif
 
                 if (!Directory.Exists(secondaryCurrentPath))
                 {
@@ -216,6 +231,14 @@ namespace BookChat
                 if (string.IsNullOrEmpty(secondaryCurrentPath))
                     return;
 
+#if ANDROID
+                if (secondaryCurrentPath.StartsWith(Const.androidContentUriPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    await LoadSecondaryAndroidLibraryAsync(secondaryCurrentPath);
+                    return;
+                }
+#endif
+
                 try
                 {
                     if (!Directory.Exists(secondaryCurrentPath))
@@ -243,6 +266,162 @@ namespace BookChat
                 catch { }
             });
         }
+
+#if ANDROID
+        private static string GetAndroidTreeUriFromPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return string.Empty;
+
+            var parts = path.Split(new[] { '|' }, 2);
+            return parts[0];
+        }
+
+        private static string GetAndroidDocIdFromPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return null;
+
+            var parts = path.Split(new[] { '|' }, 2);
+            return parts.Length > 1 ? parts[1] : null;
+        }
+
+        private static string BuildAndroidContentPath(string treeUri, string docId)
+        {
+            if (string.IsNullOrEmpty(treeUri))
+                return string.Empty;
+
+            return string.IsNullOrEmpty(docId) ? treeUri : $"{treeUri}|{docId}";
+        }
+
+        private async Task LoadSecondaryAndroidLibraryAsync(string storedPath)
+        {
+            InitializeSecondaryAndroidTree(storedPath);
+
+            try
+            {
+                var treeUri = secondaryAndroidTreeUriStr;
+                var uri = Android.Net.Uri.Parse(treeUri);
+
+                if (string.IsNullOrEmpty(secondaryAndroidCurrentDocId))
+                {
+                    secondaryAndroidCurrentDocId = DocumentsContract.GetTreeDocumentId(uri);
+                }
+
+                secondaryCurrentPath = BuildAndroidContentPath(treeUri, secondaryAndroidCurrentDocId);
+
+                var items = await EnumerateAndroidContentUriAsync(
+                    treeUri,
+                    secondaryAndroidCurrentDocId);
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    SecondaryFilesStack.Children.Clear();
+                    SecondaryScroll.IsVisible = true;
+                    ApplySplitLayout(MainGrid.Width, MainGrid.Height);
+
+                    if (items.Count == 0)
+                    {
+                        SecondaryFilesStack.Children.Add(new Label { Text = AppResources.FolderReadError, TextColor = Colors.Gray });
+                    }
+
+                    AddSecondaryAndroidParent(uri);
+
+                    foreach (var item in items)
+                    {
+                        AddSecondaryAndroidItem(item);
+                    }
+
+                    AddSecondaryFolderSpacer();
+                    UpdateSecondaryAndroidBreadcrumb();
+                    isSecondaryViewVisible = true;
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    SecondaryFilesStack.Children.Clear();
+                    SecondaryFilesStack.Children.Add(new Label { Text = string.Format(AppResources.ErrorReadingContentUri, ex.Message), TextColor = Colors.Red });
+                    SecondaryScroll.IsVisible = true;
+                    ApplySplitLayout(MainGrid.Width, MainGrid.Height);
+                });
+            }
+        }
+
+        private void AddSecondaryAndroidItem(AndroidEntry item)
+        {
+            SecondaryFilesStack.Children.Add(CreateItemView(item.Name, item.IsDirectory, () =>
+            {
+                if (item.IsDirectory)
+                {
+                    secondaryAndroidDocStack.Push(secondaryAndroidCurrentDocId);
+                    secondaryAndroidNameStack.Push(item.Name);
+                    secondaryAndroidCurrentDocId = item.DocumentId;
+                    secondaryCurrentPath = BuildAndroidContentPath(secondaryAndroidTreeUriStr, secondaryAndroidCurrentDocId);
+                    _ = LoadSecondaryPathAsync();
+                }
+            }, BuildAndroidContentPath(secondaryAndroidTreeUriStr, item.DocumentId)));
+        }
+
+        private void AddSecondaryAndroidParent(Android.Net.Uri uri)
+        {
+            var rootDoc = DocumentsContract.GetTreeDocumentId(uri);
+
+            if (string.IsNullOrEmpty(secondaryAndroidCurrentDocId) || (secondaryAndroidCurrentDocId == rootDoc && secondaryAndroidDocStack.Count == 0))
+                return;
+
+            SecondaryFilesStack.Children.Add(CreateItemView(Const.parentFolderDots, true, NavigateSecondaryAndroidUp, null, enableMenu: false));
+        }
+
+        private void NavigateSecondaryAndroidUp()
+        {
+            var rootDoc = DocumentsContract.GetTreeDocumentId(
+                Android.Net.Uri.Parse(secondaryAndroidTreeUriStr));
+
+            if (secondaryAndroidDocStack.Count > 0)
+            {
+                secondaryAndroidCurrentDocId = secondaryAndroidDocStack.Pop();
+            }
+            else
+            {
+                secondaryAndroidCurrentDocId = rootDoc ?? string.Empty;
+            }
+
+            if (secondaryAndroidNameStack.Count > 0)
+                secondaryAndroidNameStack.Pop();
+
+            secondaryCurrentPath = BuildAndroidContentPath(secondaryAndroidTreeUriStr, secondaryAndroidCurrentDocId);
+            _ = LoadSecondaryPathAsync();
+        }
+
+        private void InitializeSecondaryAndroidTree(string storedPath)
+        {
+            var treeUri = GetAndroidTreeUriFromPath(storedPath);
+            var docId = GetAndroidDocIdFromPath(storedPath);
+
+            if (secondaryAndroidTreeUriStr == treeUri && secondaryAndroidCurrentDocId == docId)
+                return;
+
+            secondaryAndroidTreeUriStr = treeUri;
+            secondaryAndroidCurrentDocId = docId;
+            secondaryAndroidDocStack.Clear();
+            secondaryAndroidNameStack.Clear();
+        }
+
+        private void UpdateSecondaryAndroidBreadcrumb()
+        {
+            if (string.IsNullOrEmpty(secondaryAndroidTreeUriStr))
+            {
+                SecondaryBreadcrumbLabel.Text = string.Empty;
+                return;
+            }
+
+            SecondaryBreadcrumbLabel.Text = secondaryAndroidNameStack.Count > 0
+                ? $"{secondaryAndroidTreeUriStr} / {string.Join(Const.breadcrumbSeparator, secondaryAndroidNameStack.Reverse())}"
+                : secondaryAndroidTreeUriStr;
+        }
+#endif
 
         // Open a new MainPage preloaded with the given path (used for "Open In New View")
         public MainPage(string startPath)
@@ -821,17 +1000,8 @@ namespace BookChat
                 }
                 else if (action == AppResources.MenuOpenInNewView && isFolder)
                 {
-                    // Open folder in split view (secondary pane) for filesystem paths; for content:// open a new window
-                    if (!string.IsNullOrEmpty(fullPath) && fullPath.StartsWith(Const.androidContentUriPrefix, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Opening a new OS window for content:// locations is not supported in this app.
-                        //TODO: If needed, implement opening a new window for content:// locations on Android using platform-specific APIs.
-                        await DisplayAlertAsync(AppResources.Info, AppResources.OpenInNewViewNotSupported, AppResources.Ok);
-                    }
-                    else
-                    {
-                        ShowSecondaryForPath(fullPath);
-                    }
+                    // Open folder in split view (secondary pane) for both filesystem paths and Android content:// locations
+                    ShowSecondaryForPath(fullPath);
                 }
                 else if (action == AppResources.MenuCloseView && isSecondary)
                 {
@@ -899,9 +1069,10 @@ namespace BookChat
                         return false;
                     }
 
-                    // Parent document id for the tree
-                    var treeDocId = Android.Provider.DocumentsContract.GetTreeDocumentId(treeUri);
-                    var parentDocUri = Android.Provider.DocumentsContract.BuildDocumentUriUsingTree(treeUri, treeDocId);
+                    var targetDocId = parts.Length > 1 ? parts[1] : null;
+                    var parentDocUri = string.IsNullOrEmpty(targetDocId)
+                        ? Android.Provider.DocumentsContract.BuildDocumentUriUsingTree(treeUri, Android.Provider.DocumentsContract.GetTreeDocumentId(treeUri))
+                        : Android.Provider.DocumentsContract.BuildDocumentUriUsingTree(treeUri, targetDocId);
 
                     var created = Android.Provider.DocumentsContract.CreateDocument(resolver, parentDocUri, "vnd.android.document/directory", folderName.Trim());
                     if (created == null)
@@ -910,7 +1081,7 @@ namespace BookChat
                         return false;
                     }
 
-                    await LoadLibPathAsync();
+                    await RefreshPrimaryAndSecondaryAsync();
                     return true;
                 }
                 catch (Exception ex)
@@ -933,7 +1104,7 @@ namespace BookChat
             {
                 var newPath = Path.Combine(fullPath ?? string.Empty, folderNameFs.Trim());
                 Directory.CreateDirectory(newPath);
-                await LoadLibPathAsync();
+                await RefreshPrimaryAndSecondaryAsync();
             }
             catch (Exception ex)
             {
@@ -968,8 +1139,12 @@ namespace BookChat
                     return false;
                 }
 
-                var result = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: Path.GetFileNameWithoutExtension(name)) + Const.pdfFileExtension;
+                var result = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: Path.GetFileNameWithoutExtension(name));
+
                 if (string.IsNullOrEmpty(result)) return false;
+
+                if (!isFolder)
+                    result = result + Const.pdfFileExtension;
 
                 try
                 {
@@ -991,7 +1166,7 @@ namespace BookChat
                         return false;
                     }
 
-                    await LoadLibPathAsync();
+                    await RefreshPrimaryAndSecondaryAsync();
                     return true;
                 }
                 catch (Exception ex)
@@ -1004,9 +1179,13 @@ namespace BookChat
                 return false;
 #endif
             }
+            var resultFs = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: Path.GetFileNameWithoutExtension(name));
 
-            var resultFs = await DisplayPromptAsync(AppResources.RenameTitle, AppResources.RenamePrompt, initialValue: Path.GetFileNameWithoutExtension(name)) + Const.pdfFileExtension;
             if (string.IsNullOrEmpty(resultFs)) return false;
+
+            if (!isFolder)
+                resultFs = resultFs + Const.pdfFileExtension;
+
 
             var parent = Path.GetDirectoryName(fullPath) ?? string.Empty;
             var newPath = Path.Combine(parent, resultFs);
@@ -1016,8 +1195,18 @@ namespace BookChat
             else
                 File.Move(fullPath, newPath);
 
-            await LoadLibPathAsync();
+            await RefreshPrimaryAndSecondaryAsync();
             return true;
+        }
+
+        private async Task RefreshPrimaryAndSecondaryAsync()
+        {
+            await LoadLibPathAsync();
+
+            if (isSecondaryViewVisible)
+            {
+                await LoadSecondaryPathAsync();
+            }
         }
 
         private async Task<bool> DeleteItemAsync(string name, bool isFolder, string fullPath)
@@ -1070,7 +1259,7 @@ namespace BookChat
                         return false;
                     }
 
-                    await LoadLibPathAsync();
+                    await RefreshPrimaryAndSecondaryAsync();
                     return true;
                 }
                 catch (Exception ex)
@@ -1092,7 +1281,7 @@ namespace BookChat
             else
                 File.Delete(fullPath);
 
-            await LoadLibPathAsync();
+            await RefreshPrimaryAndSecondaryAsync();
             return true;
         }
 
