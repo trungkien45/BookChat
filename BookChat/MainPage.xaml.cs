@@ -439,9 +439,13 @@ namespace BookChat
                 : $"{AppResources.LibPathLabel}: {storedPath}";
         }
 
-        private void onOpen(StorageItem file)
+        private async void onOpen(StorageItem file)
         {
             //Todo: Implement the logic to open the PDF file
+            await Shell.Current.GoToAsync(nameof(ViewBook), new ShellNavigationQueryParameters
+            {
+                ["File"] = file
+            });
         }
 
         private void InitializeNavigation(StorageItem initialItem)

@@ -56,6 +56,9 @@ namespace BookChat.Resources
             { "LibPathEmptyMessage", "Lib Path is empty. Please enter or pick a folder." },
             { "ApplyLanguageError", "Could not apply language: {0}" },
             { "MenuMoveNewView", "Move To New View" },
+            { "TitleError", "Error" },
+            {"OpenPDFError", "Could not open PDF file"  }
+
         };
 
         static readonly Dictionary<string, string> vi = new()
@@ -107,7 +110,8 @@ namespace BookChat.Resources
             { "LibPathEmptyMessage", "Đường dẫn Lib Path trống. Vui lòng nhập hoặc chọn thư mục." },
             { "ApplyLanguageError", "Không thể áp dụng ngôn ngữ: {0}" },
             { "MenuMoveNewView", "Di chuyển sang bên kia" },
-
+            { "TitleError",  "Lỗi" },
+            {"OpenPDFError", "Không thể mở tệp PDF" }
         };
 
         static Dictionary<string, string> CurrentDict
@@ -167,6 +171,8 @@ namespace BookChat.Resources
         public static string LibPathEmptyMessage => Get("LibPathEmptyMessage");
         public static string ApplyLanguageError => Get("ApplyLanguageError");
         public static string MenuMoveNewView => Get("MenuMoveNewView");
+        public static string TitleError => Get("TitleError");
+        public static string OpenPDFError => Get("OpenPDFError");
         static string Get(string key)
         {
             var dict = CurrentDict;

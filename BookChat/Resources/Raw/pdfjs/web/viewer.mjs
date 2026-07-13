@@ -20749,3 +20749,24 @@ if (document.readyState === "interactive" || document.readyState === "complete")
 export { PDFViewerApplication, AppConstants as PDFViewerApplicationConstants, AppOptions as PDFViewerApplicationOptions };
 
 //# sourceMappingURL=viewer.mjs.map
+// Thêm đoạn này vào cuối file Resources\Raw\pdfjs\web\viewer.js
+window.addEventListener("message", function (event) {
+    // Nhận chuỗi Base64 từ C# gửi qua
+    if (event.data && event.data.type === "LOAD_BYTE_ARRAY") {
+        var base64Data = event.data.data;
+        
+        // Chuyển Base64 thành Uint8Array
+        var raw = window.atob(base64Data);
+        var rawLength = raw.length;
+        var array = new Uint8Array(new ArrayBuffer(rawLength));
+
+        for (var i = 0; i < rawLength; i++) {
+            array[i] = raw.charCodeAt(i);
+        }
+
+        // Gọi hàm nội bộ của PDF.js để mở trực tiếp mảng byte từ RAM
+        if (window.PDFViewerApplication) {
+            window.PDFViewerApplication.open({ data: array });
+        }
+    }
+});

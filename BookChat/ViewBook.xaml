@@ -15,6 +15,7 @@
         <!-- Hàng 1: WebView chiếm trọn phần còn lại -->
         <WebView Grid.Row="1"
             x:Name="PdfViewer"
+                       
             HorizontalOptions="Fill"
             VerticalOptions="Fill" />
     </Grid>
