@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 using Microsoft.Maui.Storage;
 
@@ -18,8 +18,17 @@ namespace BookChat
                 });
 
 #if DEBUG
-        builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
+
+            // Register Services
+#if ANDROID
+            builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStogareService, BookChat.StorageService.Implement.AndroidStogareService>();
+#elif WINDOWS
+            builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStogareService, BookChat.StorageService.Implement.WindowsStogareService>();
+#endif
+
+            builder.Services.AddTransient<MainPage>();
 
             // Apply saved app language (if any) so resources use correct culture on startup
             try
