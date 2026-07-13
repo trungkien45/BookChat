@@ -45,7 +45,8 @@ namespace BookChat
 
         private StorageItem CreateInitialStorageItem(string storedPath)
         {
-            return new StorageItem 
+            return _storageService.GetFromId(storedPath, storedPath)??
+                new StorageItem 
             { 
                 Id = storedPath, 
                 DocumentId = "", 
@@ -119,11 +120,12 @@ namespace BookChat
             }
 
             var rootName = string.IsNullOrEmpty(secondaryRootItem.DisplayName) ? secondaryRootItem.Id : secondaryRootItem.DisplayName;
+            pathNames.Remove(rootName);
 
             if (pathNames.Count == 0)
                 SecondaryBreadcrumbLabel.Text = rootName;
             else
-                SecondaryBreadcrumbLabel.Text = $"{rootName} / {string.Join(Const.breadcrumbSeparator, pathNames)}";
+                SecondaryBreadcrumbLabel.Text = $"{rootName}/{string.Join(Const.breadcrumbSeparator, pathNames)}";
         }
 
         private void AddSecondaryParentItem()
@@ -401,13 +403,13 @@ namespace BookChat
             {
                 pathNames.Add(currentItem.DisplayName);
             }
-
             var rootName = string.IsNullOrEmpty(rootItem.DisplayName) ? rootItem.Id : rootItem.DisplayName;
+            pathNames.Remove(rootName);
 
             if (pathNames.Count == 0)
                 BreadcrumbLabel.Text = rootName;
             else
-                BreadcrumbLabel.Text = $"{rootName} / {string.Join(Const.breadcrumbSeparator, pathNames)}";
+                BreadcrumbLabel.Text = $"{rootName}/{string.Join(Const.breadcrumbSeparator, pathNames)}";
         }
 
         private void AddParentItem()

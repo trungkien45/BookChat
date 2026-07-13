@@ -19,8 +19,9 @@ namespace BookChat.StorageService
         /// <summary>
         /// in android, the parent document id is the id of the parent folder
         /// in windows, the parent document id is the fullpath of the parent folder
+        /// if the item is a root folder, the parent document id is null
         /// </summary>
-        public string ParentDocumentId { get; set; } = string.Empty;
+        public string? ParentDocumentId { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public bool IsDirectory { get; set; }
     }

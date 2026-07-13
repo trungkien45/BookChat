@@ -57,6 +57,7 @@ namespace BookChat.StorageService.Implement
             var items = new List<StorageItem>();
             var folderItems = directoryInfo.GetDirectories().Select(p => new StorageItem
             {
+                // Use FullName for Id to represent the full path
                 Id = p.FullName,
                 IsDirectory = true,
                 DocumentId = p.Name,
@@ -65,6 +66,7 @@ namespace BookChat.StorageService.Implement
             });
             var filePdfItems = directoryInfo.GetFiles("*.pdf").Select(p => new StorageItem
             {
+                // Use FullName for Id to represent the full path
                 Id = p.FullName,
                 IsDirectory = false,
                 DocumentId = p.Name,
@@ -81,6 +83,44 @@ namespace BookChat.StorageService.Implement
             throw new PlatformNotSupportedException("This method is only supported on Windows.");
 #endif
         }
+
+        public StorageItem? GetFromId(string id, string rootId)
+        {
+#if WINDOWS
+            var fullPath = id; // Assuming Id is the full path of the item
+            var rootPath = rootId; // Assuming rootId is the full path of the root folder
+            if (Directory.Exists(fullPath))
+            {
+                return new StorageItem
+                {
+                    Id = fullPath,
+                    IsDirectory = true,
+                    DocumentId = Path.GetFileName(fullPath),
+                    DisplayName = Path.GetFileName(fullPath),
+                    ParentDocumentId = null
+                };
+            }
+            else if (File.Exists(fullPath))
+            {
+                return new StorageItem
+                {
+                    Id = fullPath,
+                    IsDirectory = false,
+                    DocumentId = Path.GetFileName(fullPath),
+                    DisplayName = Path.GetFileName(fullPath),
+                    ParentDocumentId = null
+                };
+            }
+            else
+            {
+                throw new ArgumentException("The provided id does not correspond to an existing file or directory.");
+            }
+#else
+            throw new PlatformNotSupportedException("This method is only supported on Windows.");
+#endif
+            }
+
+        
 
         public Task<bool> Move(StorageItem source, StorageItem destination)
         {

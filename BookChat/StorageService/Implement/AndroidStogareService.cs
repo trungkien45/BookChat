@@ -1,8 +1,9 @@
 ﻿#if ANDROID
+using Android.Net;
 using Android.Provider;
 #endif
 using BookChat.StorageService.Inteface;
-using static Android.Graphics.ImageDecoder;
+using System.Diagnostics;
 
 namespace BookChat.StorageService.Implement
 {
@@ -179,6 +180,76 @@ namespace BookChat.StorageService.Implement
 #endif
         }
 
+        public StorageItem? GetFromId(string id, string rootId)
+        {
+#if ANDROID
+            if (string.IsNullOrWhiteSpace(id))
+                return null;
+
+            var resolver = Android.App.Application.Context.ContentResolver;
+            if (resolver == null)
+                return null;
+
+            Android.Net.Uri? uri;
+
+            if (id == rootId)
+            {
+                var treeUri = Android.Net.Uri.Parse(rootId);
+                if (treeUri == null)
+                    return null;
+
+                uri = DocumentsContract.BuildDocumentUriUsingTree(
+                    treeUri,
+                    DocumentsContract.GetTreeDocumentId(treeUri));
+            }
+            else
+            {
+                uri = Android.Net.Uri.Parse(id);
+            }
+
+            if (uri == null)
+                return null;
+
+            string[] projection =
+            {
+                DocumentsContract.Document.ColumnDocumentId,
+                DocumentsContract.Document.ColumnDisplayName,
+                DocumentsContract.Document.ColumnMimeType
+            };
+
+
+            using var cursor = resolver.Query(uri, projection, null, null, null);
+
+            if (cursor == null || !cursor.MoveToFirst())
+                return null;
+
+            var documentId = cursor.GetString(
+                cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDocumentId));
+
+            if (documentId == null)
+                return null;
+
+            var displayName = cursor.GetString(
+                cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDisplayName));
+
+            if (displayName == null)
+                return null;
+
+            var mimeType = cursor.GetString(
+                cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnMimeType));
+
+            return new StorageItem
+            {
+                Id = id,
+                DocumentId = documentId,
+                ParentDocumentId = null,
+                DisplayName = displayName,
+                IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
+            };
+#else
+            throw new PlatformNotSupportedException("This method is only supported on Android.");
+#endif
+        }
         public Task<bool> Move(StorageItem source, StorageItem destination)
         {
 #if ANDROID
@@ -272,6 +343,7 @@ namespace BookChat.StorageService.Implement
 #endif
         }
 #if ANDROID
+
         private static Android.Net.Uri? GetTreeUriFromDocumentUri(StorageItem storageItem)
         {
             if (string.IsNullOrWhiteSpace(storageItem.Id))
