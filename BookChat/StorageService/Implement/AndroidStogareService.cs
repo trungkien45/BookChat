@@ -171,8 +171,9 @@ namespace BookChat.StorageService.Implement
             result.AddRange(folderItems);
             result.AddRange(fileItems);
 
-
-            return Task.FromResult(result);
+            return Task.FromResult(result.OrderByDescending(x => x.IsDirectory)
+                .ThenBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .ToList());
 #else
             throw new PlatformNotSupportedException("This method is only supported on Android.");
 #endif
