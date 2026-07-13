@@ -2,6 +2,7 @@
 using Android.Provider;
 #endif
 using BookChat.StorageService.Inteface;
+using static Android.Graphics.ImageDecoder;
 
 namespace BookChat.StorageService.Implement
 {
@@ -18,7 +19,7 @@ namespace BookChat.StorageService.Implement
             if (string.IsNullOrWhiteSpace(folderName))
                 return Task.FromResult(false);
 
-            var treeUri = Android.Net.Uri.Parse(storageItem.Id);
+            var treeUri = GetTreeUriFromDocumentUri(storageItem);
             var resolver = Android.App.Application.Context.ContentResolver;
 
             // Check write permission
@@ -53,7 +54,7 @@ namespace BookChat.StorageService.Implement
         public Task<bool> Delete(StorageItem storageItem)
         {
 #if ANDROID
-            var treeUri = Android.Net.Uri.Parse(storageItem.Id);
+            var treeUri = GetTreeUriFromDocumentUri(storageItem);
             var resolver = Android.App.Application.Context.ContentResolver;
 
             // Check write permission
@@ -86,7 +87,8 @@ namespace BookChat.StorageService.Implement
 #if ANDROID
             var result = new List<StorageItem>();
 
-            var treeUri = Android.Net.Uri.Parse(storageItem.Id);
+            var treeUri = GetTreeUriFromDocumentUri(storageItem);
+
             var resolver = Android.App.Application.Context.ContentResolver;
             if (resolver == null || treeUri == null)
                 return Task.FromResult(result);
@@ -149,7 +151,7 @@ namespace BookChat.StorageService.Implement
                     documentId);
                 if (documentUri == null)
                     continue;
-                if (string.IsNullOrWhiteSpace(documentUri.ToString()))
+                if (documentUri.ToString() == null)
                     continue;
                 var item = new StorageItem
                 {
@@ -175,6 +177,7 @@ namespace BookChat.StorageService.Implement
             throw new PlatformNotSupportedException("This method is only supported on Android.");
 #endif
         }
+
         public Task<bool> Move(StorageItem source, StorageItem destination)
         {
 #if ANDROID
@@ -183,8 +186,8 @@ namespace BookChat.StorageService.Implement
 
             var resolver = Android.App.Application.Context.ContentResolver;
 
-            var sourceTreeUri = Android.Net.Uri.Parse(source.Id);
-            var destinationTreeUri = Android.Net.Uri.Parse(destination.Id);
+            var sourceTreeUri = GetTreeUriFromDocumentUri(source);
+            var destinationTreeUri = GetTreeUriFromDocumentUri(destination);
             if (resolver == null || sourceTreeUri == null || destinationTreeUri == null)
                 return Task.FromResult(false);
             // MoveDocument chỉ hỗ trợ trong cùng một DocumentsProvider
@@ -238,7 +241,7 @@ namespace BookChat.StorageService.Implement
 
             newName = newName.Trim();
 
-            var treeUri = Android.Net.Uri.Parse(storageItem.Id);
+            var treeUri = GetTreeUriFromDocumentUri(storageItem);
             var resolver = Android.App.Application.Context.ContentResolver;
 
             // Ensure we have write permission on the tree
@@ -267,5 +270,22 @@ namespace BookChat.StorageService.Implement
             throw new PlatformNotSupportedException("This method is only supported on Android.");
 #endif
         }
+#if ANDROID
+        private static Android.Net.Uri? GetTreeUriFromDocumentUri(StorageItem storageItem)
+        {
+            if (string.IsNullOrWhiteSpace(storageItem.Id))
+                return null;
+
+            var documentUri = Android.Net.Uri.Parse(storageItem.Id);
+            if (documentUri == null)
+                return null;
+
+            var treeDocumentId = DocumentsContract.GetTreeDocumentId(documentUri);
+
+            return DocumentsContract.BuildTreeDocumentUri(
+                documentUri.Authority!,
+                treeDocumentId);
+        }
+#endif
     }
 }
