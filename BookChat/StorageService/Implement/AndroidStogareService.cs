@@ -144,10 +144,16 @@ namespace BookChat.StorageService.Implement
                 if (string.IsNullOrWhiteSpace(documentId) ||
                     string.IsNullOrWhiteSpace(displayName))
                     continue;
-
+                var documentUri = DocumentsContract.BuildDocumentUriUsingTree(
+                    treeUri,
+                    documentId);
+                if (documentUri == null)
+                    continue;
+                if (string.IsNullOrWhiteSpace(documentUri.ToString()))
+                    continue;
                 var item = new StorageItem
                 {
-                    Id = storageItem.Id,
+                    Id = documentUri.ToString()!,
                     DocumentId = documentId,
                     ParentDocumentId = parentDocumentId,
                     DisplayName = displayName,
