@@ -1,9 +1,8 @@
-using Microsoft.Maui.Controls;
 using BookChat.Resources;
 using System.Globalization;
-using Microsoft.Maui.Storage;
-using System.IO;
-
+using BookChat.StorageService;
+using BookChat.StorageService.Inteface;
+using BookChat.Data;
 namespace BookChat
 {
     public partial class SettingsPage : ContentPage
@@ -81,8 +80,36 @@ namespace BookChat
             }
 
             Preferences.Set(Const.libPathPreferenceKey, path);
+
+            try
+            {
+                var storageService = Application.Current?.Handler?.MauiContext?.Services.GetService<IStogareService>();
+                var bookService = Application.Current?.Handler?.MauiContext?.Services.GetService<IBookService>();
+
+                if (storageService != null && bookService != null)
+                {
+                    var rootItem = storageService.GetFromId(path, path) ?? new StorageItem 
+                    { 
+                        Id = path, 
+                        DocumentId = "", 
+                        DisplayName = System.IO.Path.GetFileName(path),
+                        IsDirectory = true 
+                    };
+
+                    var allPdfItems = await storageService.GetPdfFilesAndFolders(rootItem, true);
+                    var pdfFiles = allPdfItems.Select(x => x.Id).ToList();
+
+                    await bookService.SyncBooksAsync(pdfFiles);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(AppResources.Error, $"Database sync failed: {ex.Message}", AppResources.Ok);
+            }
+
             await DisplayAlertAsync(AppResources.SaveLibPathButton, AppResources.SavedLibPathMessage, AppResources.Ok);
         }
+
 
         private async void OnApplyLanguageClicked(object sender, EventArgs e)
         {

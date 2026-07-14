@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui.Storage;
 
 namespace BookChat
 {

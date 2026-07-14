@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Collections.Generic;
 
 namespace BookChat.Resources
 {

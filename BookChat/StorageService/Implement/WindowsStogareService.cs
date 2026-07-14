@@ -1,9 +1,12 @@
-﻿using BookChat.StorageService.Inteface;
+using BookChat.StorageService.Inteface;
 
 namespace BookChat.StorageService.Implement
 {
     public class WindowsStogareService : IStogareService
     {
+#if !WINDOWS
+        private const string PlatformNotSupportedMessage = "This method is only supported on Windows.";
+#endif
         public Task<bool> CreateFolder(StorageItem storageItem, string folderName)
         {
 #if WINDOWS
@@ -24,7 +27,7 @@ namespace BookChat.StorageService.Implement
             Directory.CreateDirectory(Path.Combine(storageItem.Id, folderName));
             return Task.FromResult(true);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Windows.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
@@ -41,11 +44,11 @@ namespace BookChat.StorageService.Implement
             }
             return Task.FromResult(true);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Windows.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
-        public Task<List<StorageItem>> GetFilesAndFolders(StorageItem storageItem)
+        public Task<List<StorageItem>> GetPdfFilesAndFolders(StorageItem storageItem, bool recursive = false)
         {
 #if WINDOWS
             if (!storageItem.IsDirectory)
@@ -53,34 +56,48 @@ namespace BookChat.StorageService.Implement
                 return Task.FromResult(new List<StorageItem>());
             }
             var fullPath = storageItem.Id; // Assuming Id is the full path of the folder
-            DirectoryInfo directoryInfo = new DirectoryInfo(fullPath);
+            var directoryInfo = new DirectoryInfo(fullPath);
             var items = new List<StorageItem>();
-            var folderItems = directoryInfo.GetDirectories().Select(p => new StorageItem
+            
+            if (recursive)
             {
-                // Use FullName for Id to represent the full path
-                Id = p.FullName,
-                IsDirectory = true,
-                DocumentId = p.Name,
-                DisplayName = p.Name,
-                ParentDocumentId = storageItem.DocumentId
-            });
-            var filePdfItems = directoryInfo.GetFiles("*.pdf").Select(p => new StorageItem
+                var filePdfItems = directoryInfo.GetFiles("*.pdf", SearchOption.AllDirectories).Select(p => new StorageItem
+                {
+                    Id = p.FullName,
+                    IsDirectory = false,
+                    DocumentId = p.Name,
+                    DisplayName = p.Name,
+                    ParentDocumentId = storageItem.DocumentId
+                });
+                items.AddRange(filePdfItems);
+            }
+            else
             {
-                // Use FullName for Id to represent the full path
-                Id = p.FullName,
-                IsDirectory = false,
-                DocumentId = p.Name,
-                DisplayName = p.Name,
-                ParentDocumentId = storageItem.DocumentId
-            });
-            items.AddRange(folderItems);
-            items.AddRange(filePdfItems);
+                var folderItems = directoryInfo.GetDirectories().Select(p => new StorageItem
+                {
+                    Id = p.FullName,
+                    IsDirectory = true,
+                    DocumentId = p.Name,
+                    DisplayName = p.Name,
+                    ParentDocumentId = storageItem.DocumentId
+                });
+                var filePdfItems = directoryInfo.GetFiles("*.pdf").Select(p => new StorageItem
+                {
+                    Id = p.FullName,
+                    IsDirectory = false,
+                    DocumentId = p.Name,
+                    DisplayName = p.Name,
+                    ParentDocumentId = storageItem.DocumentId
+                });
+                items.AddRange(folderItems);
+                items.AddRange(filePdfItems);
+            }
 
             return Task.FromResult(items.OrderByDescending(x => x.IsDirectory)
                 .ThenBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase)
                 .ToList());
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Windows.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
@@ -116,7 +133,7 @@ namespace BookChat.StorageService.Implement
                 throw new ArgumentException("The provided id does not correspond to an existing file or directory.");
             }
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Windows.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
             }
 
@@ -141,7 +158,7 @@ namespace BookChat.StorageService.Implement
             }
             return Task.FromResult(false);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Windows.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
@@ -165,7 +182,7 @@ namespace BookChat.StorageService.Implement
             }
             return Task.FromResult(true);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Windows.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
     }

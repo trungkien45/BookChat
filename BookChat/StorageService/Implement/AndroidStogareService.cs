@@ -1,14 +1,16 @@
-﻿#if ANDROID
+#if ANDROID
 using Android.Net;
 using Android.Provider;
 #endif
 using BookChat.StorageService.Inteface;
-using System.Diagnostics;
 
 namespace BookChat.StorageService.Implement
 {
     public class AndroidStogareService : IStogareService
     {
+#if !ANDROID
+        private const string PlatformNotSupportedMessage = "This method is only supported on Android.";
+#endif
         public Task<bool> CreateFolder(StorageItem storageItem, string folderName)
         {
 #if ANDROID
@@ -48,7 +50,7 @@ namespace BookChat.StorageService.Implement
 
             return Task.FromResult(created != null);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Android.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
@@ -79,33 +81,44 @@ namespace BookChat.StorageService.Implement
 
             return Task.FromResult(deleted);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Android.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
-        public Task<List<StorageItem>> GetFilesAndFolders(StorageItem storageItem)
+        public async Task<List<StorageItem>> GetPdfFilesAndFolders(StorageItem storageItem, bool recursive = false)
         {
 #if ANDROID
-            var result = new List<StorageItem>();
-
-            var treeUri = GetTreeUriFromDocumentUri(storageItem);
-
-            var resolver = Android.App.Application.Context.ContentResolver;
-            if (resolver == null || treeUri == null)
-                return Task.FromResult(result);
-            var parentDocumentId = string.IsNullOrWhiteSpace(storageItem.DocumentId)
-                ? DocumentsContract.GetTreeDocumentId(treeUri)
-                : storageItem.DocumentId;
-            if (parentDocumentId == null)
-                return Task.FromResult(result);
-
-            var childrenUri =
-                DocumentsContract.BuildChildDocumentsUriUsingTree(
-                    treeUri,
-                    parentDocumentId);
-
-            string[] projection =
+            return await Task.Run(() =>
             {
+                var result = new List<StorageItem>();
+
+                var treeUri = GetTreeUriFromDocumentUri(storageItem);
+                var resolver = Android.App.Application.Context.ContentResolver;
+                if (resolver == null || treeUri == null)
+                    return result;
+
+                var itemsToProcess = new Queue<StorageItem>();
+                itemsToProcess.Enqueue(storageItem);
+
+                while (itemsToProcess.Count > 0)
+                {
+                    var currentItem = itemsToProcess.Dequeue();
+                    var parentDocumentId = string.IsNullOrWhiteSpace(currentItem.DocumentId)
+                        ? DocumentsContract.GetTreeDocumentId(treeUri)
+                        : currentItem.DocumentId;
+
+                    if (parentDocumentId == null)
+                        continue;
+
+                    var childrenUri = DocumentsContract.BuildChildDocumentsUriUsingTree(
+                        treeUri,
+                        parentDocumentId);
+
+                    if (childrenUri == null)
+                        continue;
+
+                    string[] projection =
+                    {
                         DocumentsContract.Document.ColumnDocumentId,
                         DocumentsContract.Document.ColumnDisplayName,
                         DocumentsContract.Document.ColumnMimeType,
@@ -113,70 +126,77 @@ namespace BookChat.StorageService.Implement
                         DocumentsContract.Document.ColumnSize,
                         DocumentsContract.Document.ColumnLastModified
                     };
-            if (childrenUri == null)
-                return Task.FromResult(result);
 
-            using var cursor = resolver.Query(
-                childrenUri,
-                projection,
-                null,
-                null,
-                null);
+                    using var cursor = resolver.Query(
+                        childrenUri,
+                        projection,
+                        null,
+                        null,
+                        null);
 
-            if (cursor == null)
-                return Task.FromResult(result);
+                    if (cursor == null)
+                        continue;
 
-            int idIndex = cursor.GetColumnIndex(
-                DocumentsContract.Document.ColumnDocumentId);
+                    int idIndex = cursor.GetColumnIndex(DocumentsContract.Document.ColumnDocumentId);
+                    int nameIndex = cursor.GetColumnIndex(DocumentsContract.Document.ColumnDisplayName);
+                    int mimeIndex = cursor.GetColumnIndex(DocumentsContract.Document.ColumnMimeType);
 
-            int nameIndex = cursor.GetColumnIndex(
-                DocumentsContract.Document.ColumnDisplayName);
+                    var folderItems = new List<StorageItem>();
+                    var fileItems = new List<StorageItem>();
 
-            int mimeIndex = cursor.GetColumnIndex(
-                DocumentsContract.Document.ColumnMimeType);
+                    while (cursor.MoveToNext())
+                    {
+                        var documentId = cursor.GetString(idIndex);
+                        var displayName = cursor.GetString(nameIndex);
+                        var mimeType = cursor.GetString(mimeIndex);
 
-            var folderItems = new List<StorageItem>();
-            var fileItems = new List<StorageItem>();
+                        if (string.IsNullOrWhiteSpace(documentId) || string.IsNullOrWhiteSpace(displayName))
+                            continue;
 
-            while (cursor.MoveToNext())
-            {
-                var documentId = cursor.GetString(idIndex);
-                var displayName = cursor.GetString(nameIndex);
-                var mimeType = cursor.GetString(mimeIndex);
+                        var documentUri = DocumentsContract.BuildDocumentUriUsingTree(treeUri, documentId);
+                        if (documentUri == null || documentUri.ToString() == null)
+                            continue;
 
-                if (string.IsNullOrWhiteSpace(documentId) ||
-                    string.IsNullOrWhiteSpace(displayName))
-                    continue;
-                var documentUri = DocumentsContract.BuildDocumentUriUsingTree(
-                    treeUri,
-                    documentId);
-                if (documentUri == null)
-                    continue;
-                if (documentUri.ToString() == null)
-                    continue;
-                var item = new StorageItem
-                {
-                    Id = documentUri.ToString()!,
-                    DocumentId = documentId,
-                    ParentDocumentId = parentDocumentId,
-                    DisplayName = displayName,
-                    IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
-                };
+                        var item = new StorageItem
+                        {
+                            Id = documentUri.ToString()!,
+                            DocumentId = documentId,
+                            ParentDocumentId = parentDocumentId,
+                            DisplayName = displayName,
+                            IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
+                        };
 
-                if (item.IsDirectory)
-                    folderItems.Add(item);
-                else
-                    fileItems.Add(item);
-            }
+                        if (item.IsDirectory)
+                        {
+                            folderItems.Add(item);
+                            if (recursive)
+                            {
+                                itemsToProcess.Enqueue(item);
+                            }
+                        }
+                        else if (displayName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || mimeType == "application/pdf")
+                        {
+                            fileItems.Add(item);
+                        }
+                    }
 
-            result.AddRange(folderItems);
-            result.AddRange(fileItems);
+                    if (!recursive)
+                    {
+                        result.AddRange(folderItems);
+                        result.AddRange(fileItems);
+                    }
+                    else
+                    {
+                        result.AddRange(fileItems);
+                    }
+                }
 
-            return Task.FromResult(result.OrderByDescending(x => x.IsDirectory)
-                .ThenBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase)
-                .ToList());
+                return result.OrderByDescending(x => x.IsDirectory)
+                    .ThenBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                    .ToList();
+            });
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Android.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
@@ -247,7 +267,7 @@ namespace BookChat.StorageService.Implement
                 IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
             };
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Android.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
         public Task<bool> Move(StorageItem source, StorageItem destination)
@@ -301,7 +321,7 @@ namespace BookChat.StorageService.Implement
 
             return Task.FromResult(moved != null);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Android.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 
@@ -339,7 +359,7 @@ namespace BookChat.StorageService.Implement
 
             return Task.FromResult(renamed != null);
 #else
-            throw new PlatformNotSupportedException("This method is only supported on Android.");
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
 #if ANDROID

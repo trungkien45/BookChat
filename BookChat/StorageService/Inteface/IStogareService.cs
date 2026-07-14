@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace BookChat.StorageService.Inteface
 {
     public interface IStogareService
     {
-        public Task<List<StorageItem>> GetFilesAndFolders(StorageItem storageItem);
+        public Task<List<StorageItem>> GetPdfFilesAndFolders(StorageItem storageItem, bool recursive = false);
         public Task<bool> Delete(StorageItem storageItem);
         public Task<bool> CreateFolder(StorageItem storageItem, string folderName);
         public Task<bool> Move(StorageItem source, StorageItem destination);

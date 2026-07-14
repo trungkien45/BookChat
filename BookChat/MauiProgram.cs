@@ -26,7 +26,12 @@ namespace BookChat
 #elif WINDOWS
             builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStogareService, BookChat.StorageService.Implement.WindowsStogareService>();
 #endif
-
+            
+            
+            builder.Services.AddSingleton<BookChat.Data.Providers.SqliteDatabase>();
+            builder.Services.AddSingleton<BookChat.Data.IUnitOfWork, BookChat.Data.Providers.SqliteUnitOfWork>();
+            builder.Services.AddSingleton<BookChat.Data.IBookRepository, BookChat.Data.Providers.SqliteBookRepository>();
+            builder.Services.AddSingleton<BookChat.Data.IBookService, BookChat.Data.BookService>();
             builder.Services.AddTransient<MainPage>();
 
             // Apply saved app language (if any) so resources use correct culture on startup

@@ -1,19 +1,13 @@
 using BookChat.Resources;
 using BookChat.StorageService;
 using BookChat.StorageService.Inteface;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Storage;
-using Microsoft.Maui.Graphics;
 
 namespace BookChat
 {
     public partial class MainPage : ContentPage
     {
         private readonly IStogareService _storageService;
+        private readonly BookChat.Data.IBookService _bookService;
 
         StorageItem? rootItem = null;
         StorageItem? currentItem = null;
@@ -25,16 +19,18 @@ namespace BookChat
         Stack<StorageItem> secondaryNavStack = new();
         bool isSecondaryViewVisible = false;
 
-        public MainPage(IStogareService storageService)
+        public MainPage(IStogareService storageService, BookChat.Data.IBookService bookService)
         {
             InitializeComponent();
             _storageService = storageService;
+            _bookService = bookService;
         }
 
-        public MainPage(IStogareService storageService, string startPath)
+        public MainPage(IStogareService storageService, BookChat.Data.IBookService bookService, string startPath)
         {
             InitializeComponent();
             _storageService = storageService;
+            _bookService = bookService;
 
             if (!string.IsNullOrEmpty(startPath))
             {
@@ -154,7 +150,7 @@ namespace BookChat
         {
             if (secondaryCurrentItem == null) return;
 
-            var items = await _storageService.GetFilesAndFolders(secondaryCurrentItem);
+            var items = await _storageService.GetPdfFilesAndFolders(secondaryCurrentItem);
 
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
@@ -344,7 +340,7 @@ namespace BookChat
         {
             if (currentItem == null) return;
 
-            var items = await _storageService.GetFilesAndFolders(currentItem);
+            var items = await _storageService.GetPdfFilesAndFolders(currentItem);
 
             // Clear before re-rendering
             FilesStack.Children.Clear();
@@ -684,6 +680,13 @@ namespace BookChat
                 return false;
             }
 
+            if (rootItem != null)
+            {
+                var allPdfItems = await _storageService.GetPdfFilesAndFolders(rootItem, true);
+                var pdfFiles = allPdfItems.Select(x => x.Id).ToList();
+                await _bookService.SyncBooksAsync(pdfFiles);
+            }
+
             await RefreshPrimaryAndSecondaryAsync();
             return true;
         }
@@ -702,11 +705,31 @@ namespace BookChat
             var confirm = await DisplayAlertAsync(AppResources.Confirm, string.Format(AppResources.ConfirmDeleteMessage, name), AppResources.Yes, AppResources.No);
             if (!confirm) return false;
 
+            List<string> pathsToDelete = new List<string>();
+            if (item.IsDirectory)
+            {
+                var pdfItems = await _storageService.GetPdfFilesAndFolders(item, true);
+                pathsToDelete.AddRange(pdfItems.Select(x => x.Id));
+            }
+            else
+            {
+                pathsToDelete.Add(item.Id);
+            }
+
             var success = await _storageService.Delete(item);
             if (!success)
             {
                 await DisplayAlertAsync(AppResources.Info, AppResources.CreateFolderNotSupportedMessage, AppResources.Ok);
                 return false;
+            }
+
+            foreach (var path in pathsToDelete)
+            {
+                var book = await _bookService.GetBookByPathAsync(path);
+                if (book != null)
+                {
+                    await _bookService.DeleteBookAsync(book);
+                }
             }
 
             await RefreshPrimaryAndSecondaryAsync();
