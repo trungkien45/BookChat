@@ -3,6 +3,7 @@ using System.Globalization;
 using BookChat.StorageService;
 using BookChat.StorageService.Inteface;
 using BookChat.Data;
+using BookChat.Data.Service;
 namespace BookChat
 {
     public partial class SettingsPage : ContentPage

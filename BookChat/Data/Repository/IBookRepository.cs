@@ -1,6 +1,6 @@
 using BookChat.Models;
 
-namespace BookChat.Data
+namespace BookChat.Data.Repository
 {
     public interface IBookRepository
     {

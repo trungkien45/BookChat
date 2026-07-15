@@ -1,8 +1,9 @@
+using SQLite;
+
 namespace BookChat.Data.Providers
 {
     public class SqliteUnitOfWork : IUnitOfWork
     {
-        private readonly SqliteDatabase _database;
         // SemaphoreSlim ensures that only one transaction uses the shared SQLiteAsyncConnection at a time, preventing conflicts caused by concurrent transactions on the same connection.
         // if multiple transactions are attempted simultaneously, they will be queued and executed one at a time, ensuring data integrity and preventing potential deadlocks or race conditions.
         // if Orther Provider strongly recommend to use a separate connection for each transaction, but in this case, we are using a single shared connection with a lock to manage concurrent access.
@@ -11,10 +12,11 @@ namespace BookChat.Data.Providers
         // In that case, can remove the SemaphoreSlim and use a separate connection for each transaction, but it may have performance implications due to the overhead of creating and disposing connections.
         // In that case, you can safely remove the line below.
         private readonly SemaphoreSlim _transactionLock = new(1, 1);
+        private SQLiteAsyncConnection conn;
 
-        public SqliteUnitOfWork(SqliteDatabase database)
+        public SqliteUnitOfWork(SQLiteAsyncConnection conn)
         {
-            _database = database;
+            this.conn = conn;
         }
 
         public async Task ExecuteInTransactionAsync(Func<Task> action)
@@ -29,7 +31,7 @@ namespace BookChat.Data.Providers
         public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action)
         {
             await _transactionLock.WaitAsync();
-            var conn = await _database.GetConnectionAsync();
+            var conn = this.conn;
 
             try
             {

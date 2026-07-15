@@ -1,3 +1,5 @@
+using BookChat.Data.Providers;
+using BookChat.Data.Service;
 using BookChat.Resources;
 using BookChat.StorageService;
 using BookChat.StorageService.Inteface;
@@ -7,8 +9,8 @@ namespace BookChat
     public partial class MainPage : ContentPage
     {
         private readonly IStogareService _storageService;
-        private readonly BookChat.Data.IBookService _bookService;
-
+        private readonly IBookService _bookService;
+        private readonly IDbSessionFactory _dbSessionFactory;
         StorageItem? rootItem = null;
         StorageItem? currentItem = null;
         Stack<StorageItem> navStack = new();
@@ -19,24 +21,26 @@ namespace BookChat
         Stack<StorageItem> secondaryNavStack = new();
         bool isSecondaryViewVisible = false;
 
-        public MainPage(IStogareService storageService, BookChat.Data.IBookService bookService)
+        public MainPage(IStogareService storageService, IBookService bookService, IDbSessionFactory dbSessionFactory)
         {
             InitializeComponent();
             _storageService = storageService;
             _bookService = bookService;
+            _dbSessionFactory = dbSessionFactory;
         }
 
-        public MainPage(IStogareService storageService, BookChat.Data.IBookService bookService, string startPath)
+        public MainPage(IStogareService storageService, IBookService bookService, string startPath, IDbSessionFactory dbSessionFactory)
         {
             InitializeComponent();
             _storageService = storageService;
             _bookService = bookService;
-
             if (!string.IsNullOrEmpty(startPath))
             {
                 var initialItem = CreateInitialStorageItem(startPath);
                 _ = LoadFileSystemLibrary();
             }
+
+            _dbSessionFactory = dbSessionFactory;
         }
 
         private StorageItem CreateInitialStorageItem(string storedPath)
