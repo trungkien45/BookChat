@@ -1,4 +1,5 @@
-﻿using BookChat.Data.Repository;
+﻿using BookChat.Data.Providers.Sqlite.Repo;
+using BookChat.Data.Repository;
 using SQLite;
 
 namespace BookChat.Data.Providers.Sqlite

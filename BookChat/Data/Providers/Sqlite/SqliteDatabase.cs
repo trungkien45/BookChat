@@ -21,7 +21,15 @@ namespace BookChat.Data.Providers
                     ReadingPage INTEGER NOT NULL DEFAULT 0
                 )
                 """);
-
+            await _connection.ExecuteAsync("""
+                CREATE TABLE IF NOT EXISTS Bookmark (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    BookId INTEGER NOT NULL,
+                    PageNumber INTEGER NOT NULL,
+                    Name TEXT NOT NULL,
+                    FOREIGN KEY(BookId) REFERENCES Book(Id) ON DELETE CASCADE
+                )
+                """);
             return _connection;
         }
     }

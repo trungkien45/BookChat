@@ -2,7 +2,7 @@ using BookChat.Data.Repository;
 using BookChat.Models;
 using SQLite;
 
-namespace BookChat.Data.Providers
+namespace BookChat.Data.Providers.Sqlite.Repo
 {
     public class SqliteBookRepository : IBookRepository
     {

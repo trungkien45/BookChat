@@ -1,9 +1,7 @@
 namespace BookChat.Models
 {
-    public class Book
+    public class Book : Entity
     {
-        public int Id { get; set; }
-
         public string Path { get; set; } = null!;
 
         public int ReadingPage { get; set; }

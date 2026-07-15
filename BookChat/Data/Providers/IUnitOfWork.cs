@@ -1,4 +1,4 @@
-namespace BookChat.Data
+namespace BookChat.Data.Providers
 {
     public interface IUnitOfWork
     {
