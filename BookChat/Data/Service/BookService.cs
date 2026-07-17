@@ -7,8 +7,8 @@ namespace BookChat.Data.Service
     public interface IBookService
     {
         Task<List<Book>> GetBooksAsync();
-        Task<Book> GetBookAsync(int id);
-        Task<Book> GetBookByPathAsync(string path);
+        Task<Book?> GetBookAsync(int id);
+        Task<Book?> GetBookByPathAsync(string path);
         Task<int> InsertBookAsync(Book book);
         Task<int> UpdateBookAsync(Book book);
         Task<int> DeleteBookAsync(Book book);
@@ -29,12 +29,12 @@ namespace BookChat.Data.Service
         
         }
 
-        public async Task<Book> GetBookAsync(int id)
+        public async Task<Book?> GetBookAsync(int id)
         {
             return await ExecuteAsync(db => db.BookRepository.GetBookAsync(id));
         }
 
-        public async Task<Book> GetBookByPathAsync(string path)
+        public async Task<Book?> GetBookByPathAsync(string path)
         {
             return await ExecuteAsync(db => db.BookRepository.GetBookByPathAsync(path));
         }
@@ -46,7 +46,7 @@ namespace BookChat.Data.Service
                 var existingBook = await db.BookRepository.GetBookByPathAsync(book.Path);
                 if (existingBook != null)
                 {
-                    return 0; // Book already exists, do not insert
+                    throw new Exception("Book already exists, do not insert");
                 }
                 return await db.BookRepository.InsertBookAsync(book);
             }));
@@ -62,7 +62,7 @@ namespace BookChat.Data.Service
             return await ExecuteAsync(db => db.UnitOfWork.ExecuteInTransactionAsync(async () => 
             {
                 return 
-                    await db.BookmarkRepository.DeleteBookmarksByBookIdAsync(book.Id) 
+                    await db.BookmarkRepository.DeleteBookmarksByBookIdAsync(book) 
                 +
                     await db.BookRepository.DeleteBookAsync(book);
             }));

@@ -9,6 +9,5 @@ namespace BookChat.Models
         public string Name { get; set; } = string.Empty; 
         public int PageNumber { get; set; }
         public int BookId { get; set; }
-        public Book Book { get; set; } = null!;
     }
 }

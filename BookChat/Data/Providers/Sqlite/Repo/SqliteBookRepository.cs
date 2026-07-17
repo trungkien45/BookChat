@@ -6,7 +6,7 @@ namespace BookChat.Data.Providers.Sqlite.Repo
 {
     public class SqliteBookRepository : IBookRepository
     {
-        private SQLiteAsyncConnection conn;
+        private readonly SQLiteAsyncConnection conn;
 
         public SqliteBookRepository(SQLiteAsyncConnection conn)
         {
@@ -18,18 +18,18 @@ namespace BookChat.Data.Providers.Sqlite.Repo
             return await conn.QueryAsync<Book>("SELECT Id, Path, ReadingPage FROM Book");
         }
 
-        public async Task<Book> GetBookAsync(int id)
+        public async Task<Book?> GetBookAsync(int id)
         {
             return (await conn.QueryAsync<Book>(
                 "SELECT Id, Path, ReadingPage FROM Book WHERE Id = ? LIMIT 1",
-                id)).FirstOrDefault()!;
+                id)).FirstOrDefault();
         }
 
-        public async Task<Book> GetBookByPathAsync(string path)
+        public async Task<Book?> GetBookByPathAsync(string path)
         {
             return (await conn.QueryAsync<Book>(
                 "SELECT Id, Path, ReadingPage FROM Book WHERE Path = ? LIMIT 1",
-                path)).FirstOrDefault()!;
+                path)).FirstOrDefault();
         }
 
         public async Task<int> InsertBookAsync(Book book)

@@ -6,42 +6,55 @@ namespace BookChat.Data.Providers.Sqlite.Repo
 {
     public class SqliteBookmarkRepository : IBookmarkRepository
     {
-        private SQLiteAsyncConnection conn;
+        private readonly SQLiteAsyncConnection conn;
 
         public SqliteBookmarkRepository(SQLiteAsyncConnection conn)
         {
             this.conn = conn;
         }
 
-        public Task<int> DeleteBookmarkAsync(Bookmark bookmark)
+        public async Task<int> DeleteBookmarkAsync(Bookmark bookmark)
         {
-            throw new NotImplementedException();
+            return await conn.ExecuteAsync("DELETE FROM Bookmark WHERE Id = ?", bookmark.Id);
         }
 
-        public Task<int> DeleteBookmarksByBookIdAsync(int id)
+        public async Task<int> DeleteBookmarksByBookIdAsync(Book book)
         {
-            //TODO: Implement this method to delete bookmarks by book ID
-            throw new NotImplementedException();
+            return await conn.ExecuteAsync("DELETE FROM Bookmark WHERE BookId = ?", book.Id);
         }
 
-        public Task<Bookmark> GetBookmarkByIdAsync(int id)
+        public async Task<Bookmark?> GetBookmarkByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return (await conn.QueryAsync<Bookmark>("SELECT Id, BookId, PageNumber, Name FROM Bookmark WHERE Id = ?", id)).FirstOrDefault();
         }
 
-        public Task<List<Bookmark>> GetBookmarksByBookIdAsync(int bookId)
+        public async Task<List<Bookmark>> GetBookmarksByBookIdAsync(Book book)
         {
-            throw new NotImplementedException();
+            return await conn.QueryAsync<Bookmark>("SELECT Id, BookId, PageNumber, Name FROM Bookmark WHERE BookId = ?", book.Id);
         }
 
-        public Task<int> InsertBookmarkAsync(Bookmark bookmark)
+        public async Task<int> InsertBookmarkAsync(Bookmark bookmark)
         {
-            throw new NotImplementedException();
+            var rows = await conn.ExecuteAsync(
+                "INSERT OR IGNORE INTO Bookmark (BookId, PageNumber, Name) VALUES (?, ?, ?)",
+                bookmark.BookId,
+                bookmark.PageNumber,
+                bookmark.Name);
+
+            if (rows > 0)
+                bookmark.Id = await conn.ExecuteScalarAsync<int>("SELECT last_insert_rowid()");
+
+            return rows;
         }
 
-        public Task<int> UpdateBookmarkAsync(Bookmark bookmark)
+        public async Task<int> UpdateBookmarkAsync(Bookmark bookmark)
         {
-            throw new NotImplementedException();
+            return await conn.ExecuteAsync(
+                "UPDATE Bookmark SET BookId = ?, PageNumber = ?, Name = ? WHERE Id = ?",
+                bookmark.BookId,
+                bookmark.PageNumber,
+                bookmark.Name,
+                bookmark.Id);
         }
     }
 }

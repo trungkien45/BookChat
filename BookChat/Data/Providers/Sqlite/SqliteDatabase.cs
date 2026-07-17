@@ -1,6 +1,6 @@
 using SQLite;
 
-namespace BookChat.Data.Providers
+namespace BookChat.Data.Providers.Sqlite
 {
     public class SqliteDatabase
     {

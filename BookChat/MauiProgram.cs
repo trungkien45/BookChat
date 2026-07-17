@@ -1,5 +1,6 @@
 using BookChat.Data.Providers;
 using BookChat.Data.Providers.Sqlite;
+using BookChat.Data.Service;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 
@@ -29,9 +30,10 @@ namespace BookChat
             builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStogareService, BookChat.StorageService.Implement.WindowsStogareService>();
 #endif
             
-            builder.Services.AddSingleton<BookChat.Data.Providers.SqliteDatabase>();
+
+            builder.Services.AddSingleton<SqliteDatabase>();
             builder.Services.AddSingleton<IDbSessionFactory, SqliteDbSessionFactory>();
-            builder.Services.AddSingleton<BookChat.Data.Service.IBookService, BookChat.Data.Service.BookService>();
+            builder.Services.AddSingleton<IBookService, BookService>();
             builder.Services.AddTransient<MainPage>();
 
             // Apply saved app language (if any) so resources use correct culture on startup
