@@ -102,4 +102,37 @@ public partial class ViewBook : ContentPage
     private async void ContentPage_Loaded(object sender, EventArgs e)
     {
     }
+    private string currentTab = "";
+
+    private void OnTabTapped(object sender, TappedEventArgs e)
+    {
+        if (e.Parameter == null) return;
+        string targetTab = (e.Parameter ?? string.Empty).ToString()!;
+
+        // Nhấn lại tab cũ -> Ẩn sidebar
+        if (currentTab == targetTab && xSideBarPanel.IsVisible)
+        {
+            xSideBarPanel.IsVisible = false;
+            SidebarColumn.Width = 0;
+            return;
+        }
+
+        // Mở sidebar và cập nhật nội dung
+        xSideBarPanel.IsVisible = true;
+        currentTab = targetTab;
+
+        switch (targetTab)
+        {
+            case "explorer":
+                SideBarContent.Content = new Label { Text = "File Explorer Content", TextColor = Colors.White, Padding = 10 };
+                break;
+            case "search":
+                SideBarContent.Content = new Label { Text = "Search Content", TextColor = Colors.White, Padding = 10 };
+                break;
+            case "settings":
+                SideBarContent.Content = new Label { Text = "Settings Content", TextColor = Colors.White, Padding = 10 };
+                break;
+        }
+        SidebarColumn.Width = 250;
+    }
 }

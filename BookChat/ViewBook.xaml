@@ -4,19 +4,96 @@
              x:Class="BookChat.ViewBook"
              Title="ViewBook"
              Loaded="ContentPage_Loaded">
-    <Grid RowDefinitions="Auto, *">
-        <!-- Hàng 0: Label -->
-        <Label Grid.Row="0" 
-           Text="Welcome to .NET MAUI!" 
-           VerticalOptions="Center" 
-           HorizontalOptions="Center" 
-           Margin="10" />
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="45"/>
+            <ColumnDefinition x:Name="SidebarColumn"
+                      Width="0"/>
+            <ColumnDefinition Width="*"/>
+       </Grid.ColumnDefinitions>
+        <!-- 1. ACTIVITY BAR (Chữ dọc gọn gàng) -->
+        <VerticalStackLayout Grid.Column="0" BackgroundColor="#1e1e1e" Spacing="0" Padding="0,0,0,0">
 
-        <!-- Hàng 1: WebView chiếm trọn phần còn lại -->
-        <WebView Grid.Row="1"
-            x:Name="PdfViewer"
+            <!-- Nút EXPLORER -->
+            <Border StrokeThickness="0" BackgroundColor="Transparent" HeightRequest="120" WidthRequest="45">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="explorer"/>
+                </Border.GestureRecognizers>
+
+                <!-- Dùng Grid để giải phóng không gian cho Label -->
+                <Grid WidthRequest="120" HeightRequest="120" Padding="-8,0,0,0">
+                    <Label Text="EXPLORER" 
+                        TextColor="#858585" 
+                        FontSize="12" 
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start"
+                        FontAttributes="Bold" 
+                        HorizontalTextAlignment="Center"
+                        VerticalTextAlignment="Center"
+                        InputTransparent="True"
+                        Rotation="-90" />
+                </Grid>
+            </Border>
+            <!-- Nút SEARCH -->
+            <Border StrokeThickness="0" BackgroundColor="Transparent" HeightRequest="120" WidthRequest="45">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="search"/>
+                </Border.GestureRecognizers>
+                <!-- Dùng Grid để giải phóng không gian cho Label -->
+                <Grid WidthRequest="120" HeightRequest="120" Padding="-2,0,0,0">
+                    <Label Text="SEARCH" 
+                        TextColor="#858585" 
+                        FontSize="12" 
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start"
+                        FontAttributes="Bold" 
+                        HorizontalTextAlignment="Center"
+                        VerticalTextAlignment="Center"
+                        InputTransparent="True"
+                        Rotation="-90" />
+                </Grid>
+            </Border>
+
+            <!-- Nút SETTINGS -->
+            <Border StrokeThickness="0" BackgroundColor="Transparent" HeightRequest="120" WidthRequest="45">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="settings"/>
+                </Border.GestureRecognizers>
+                <!-- Dùng Grid để giải phóng không gian cho Label -->
+                <Grid WidthRequest="120" HeightRequest="120" Padding="-7,0,0,0">
+                    <Label Text="SETTINGS" 
+                        TextColor="#858585" 
+                        FontSize="12" 
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start"
+                        FontAttributes="Bold" 
+                        HorizontalTextAlignment="Center"
+                        VerticalTextAlignment="Center"
+                        InputTransparent="True"
+                        Rotation="-90" />
+                </Grid>
+            </Border>
+
+        </VerticalStackLayout>
+
+        <!-- 2. SIDE BAR PANEL -->
+        <Grid x:Name="xSideBarPanel" Grid.Column="1" IsVisible="False" BackgroundColor="#252526">
+            <ContentView x:Name="SideBarContent" />
+        </Grid>
+
+        <!-- 3. EDITOR AREA (Vùng làm việc chính bên phải) -->
+        
+        <Grid x:Name="xMain" Grid.Column="2" RowDefinitions="Auto,*" BackgroundColor="#1e1e1e">
+            <Label Grid.Row="0" Text="Nội dung file code hoặc màn hình chính ở đây..." 
+                   TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+            <!-- Hàng 1: WebView chiếm trọn phần còn lại -->
+            <WebView Grid.Row="1"
+                x:Name="PdfViewer"
                        
-            HorizontalOptions="Fill"
-            VerticalOptions="Fill" />
+                HorizontalOptions="Fill"
+                VerticalOptions="Fill" />
+
+        </Grid>
+
     </Grid>
 </ContentPage>
