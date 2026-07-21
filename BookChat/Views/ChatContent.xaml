@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="BookChat.Views.ChatContent">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to Chat!"
-            TextColor="White"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             x:Class="BookChat.Views.ChatContent" BindingContext="this">
+    <Grid RowDefinitions="Auto,Auto,*">
+        <Label
+        Grid.Row="0"
+        Text="Welcome to Chat!"
+        TextColor="White"/>
+
+        <Picker x:Name="pickerProviderr" Grid.Row="1" Title="Chat"  ItemsSource="{Binding Providers}"
+                ItemDisplayBinding="{Binding Name}" BackgroundColor="White"
+                SelectedItem="{Binding SelectedProvider}" />
+
+
+        <WebView
+        Grid.Row="2"
+        Source="https://chatgpt.com"/>
+    </Grid>
 </ContentView>
