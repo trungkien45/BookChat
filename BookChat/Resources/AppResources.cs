@@ -56,8 +56,15 @@ namespace BookChat.Resources
             { "ApplyLanguageError", "Could not apply language: {0}" },
             { "MenuMoveNewView", "Move To New View" },
             { "TitleError", "Error" },
-            {"OpenPDFError", "Could not open PDF file"  }
-
+            { "OpenPDFError", "Could not open PDF file"  },
+            { "Library", "Library" },
+            { "Bookmarks", "Bookmarks" },
+            { "Notes", "Notes" },
+            { "UnpinSidebar", "Unpin (Auto-hide)" },
+            { "PinSidebar", "Pin sidebar" },
+            { "ChatPanel", "Chat" },
+            { "UnpinChat", "Unpin (Auto-hide)" },
+            { "PinChat", "Pin chat" }
         };
 
         static readonly Dictionary<string, string> vi = new()
@@ -110,7 +117,15 @@ namespace BookChat.Resources
             { "ApplyLanguageError", "Không thể áp dụng ngôn ngữ: {0}" },
             { "MenuMoveNewView", "Di chuyển sang bên kia" },
             { "TitleError",  "Lỗi" },
-            {"OpenPDFError", "Không thể mở tệp PDF" }
+            { "OpenPDFError", "Không thể mở tệp PDF" },
+            { "Library", "Thư viện" },
+            { "Bookmarks", "Dấu trang" },
+            { "Notes", "Ghi chú" },
+            { "UnpinSidebar", "Bỏ ghim (tự động ẩn)" },
+            { "PinSidebar", "Ghim thanh bên" },
+            { "ChatPanel", "Trò chuyện" },
+            { "UnpinChat", "Bỏ ghim (tự động ẩn)" },
+            { "PinChat", "Ghim khung chat" }
         };
 
         static Dictionary<string, string> CurrentDict
@@ -172,6 +187,23 @@ namespace BookChat.Resources
         public static string MenuMoveNewView => Get("MenuMoveNewView");
         public static string TitleError => Get("TitleError");
         public static string OpenPDFError => Get("OpenPDFError");
+
+        public static string Library => Get("Library");
+
+        public static string Bookmarks => Get("Bookmarks");
+
+        public static string Notes => Get("Notes");
+
+        public static string UnpinSidebar => Get("UnpinSidebar");
+
+        public static string PinSidebar => Get("PinSidebar");
+
+        public static string ChatPanel => Get("ChatPanel");
+
+        public static string UnpinChat => Get("UnpinChat");
+
+        public static string PinChat => Get("PinChat");
+
         static string Get(string key)
         {
             var dict = CurrentDict;

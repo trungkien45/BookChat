@@ -7,22 +7,23 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="45"/>
-            <ColumnDefinition x:Name="SidebarColumn"
-                      Width="0"/>
+            <ColumnDefinition x:Name="SidebarColumn" Width="0"/>
             <ColumnDefinition Width="*"/>
-       </Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions>
+
         <!-- 1. ACTIVITY BAR (Chữ dọc gọn gàng) -->
         <VerticalStackLayout Grid.Column="0" BackgroundColor="#1e1e1e" Spacing="0" Padding="0,0,0,0">
 
-            <!-- Nút EXPLORER -->
+            <!-- Nút Library -->
             <Border StrokeThickness="0" BackgroundColor="Transparent" HeightRequest="120" WidthRequest="45">
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="explorer"/>
+                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="library"/>
                 </Border.GestureRecognizers>
 
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
                 <Grid WidthRequest="120" HeightRequest="120" Padding="-8,0,0,0">
-                    <Label Text="EXPLORER" 
+                    <Label
+                        x:Name="lbLibrary" 
                         TextColor="#858585" 
                         FontSize="12" 
                         VerticalOptions="Center"
@@ -34,14 +35,14 @@
                         Rotation="-90" />
                 </Grid>
             </Border>
-            <!-- Nút SEARCH -->
+            <!-- Nút Note -->
             <Border StrokeThickness="0" BackgroundColor="Transparent" HeightRequest="120" WidthRequest="45">
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="search"/>
+                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="note"/>
                 </Border.GestureRecognizers>
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
                 <Grid WidthRequest="120" HeightRequest="120" Padding="-2,0,0,0">
-                    <Label Text="SEARCH" 
+                    <Label x:Name="lbNote" 
                         TextColor="#858585" 
                         FontSize="12" 
                         VerticalOptions="Center"
@@ -54,14 +55,14 @@
                 </Grid>
             </Border>
 
-            <!-- Nút SETTINGS -->
+            <!-- Nút Bookmark -->
             <Border StrokeThickness="0" BackgroundColor="Transparent" HeightRequest="120" WidthRequest="45">
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="settings"/>
+                    <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="bookmark"/>
                 </Border.GestureRecognizers>
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
                 <Grid WidthRequest="120" HeightRequest="120" Padding="-7,0,0,0">
-                    <Label Text="SETTINGS" 
+                    <Label x:Name="lbBookmark" 
                         TextColor="#858585" 
                         FontSize="12" 
                         VerticalOptions="Center"
@@ -77,22 +78,192 @@
         </VerticalStackLayout>
 
         <!-- 2. SIDE BAR PANEL -->
-        <Grid x:Name="xSideBarPanel" Grid.Column="1" IsVisible="False" BackgroundColor="#252526">
-            <ContentView x:Name="SideBarContent" />
+        <Grid x:Name="xSideBarPanel" Grid.Column="1" IsVisible="False" BackgroundColor="#252526" ColumnDefinitions="*, 20">
+            <Grid.GestureRecognizers>
+                <PointerGestureRecognizer PointerEntered="OnSidebarPointerEntered" PointerExited="OnSidebarPointerExited"/>
+            </Grid.GestureRecognizers>
+
+            <!-- Sidebar Inner Container: Header + Content -->
+            <Grid Grid.Column="0" RowDefinitions="Auto, *">
+                <!-- Sidebar Header with Title & Pin Button -->
+                <Grid Grid.Row="0" HeightRequest="36" BackgroundColor="#2d2d2d" Padding="10,0,6,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Label x:Name="lbSidebarTitle" 
+                           Text="Sidebar" 
+                           TextColor="#CCCCCC" 
+                           VerticalOptions="Center" 
+                           FontAttributes="Bold" 
+                           FontSize="12"/>
+
+                    <Button x:Name="btnPin" 
+                            Grid.Column="1" 
+                            Text="📍" 
+                            TextColor="#858585" 
+                            FontSize="12"
+                            WidthRequest="28" 
+                            HeightRequest="28" 
+                            Padding="0" 
+                            BackgroundColor="Transparent"
+                            CornerRadius="4"
+                            Clicked="OnPinClicked"/>
+                </Grid>
+
+                <!-- Sidebar Content -->
+                <ContentView x:Name="SideBarContent" Grid.Row="1" />
+            </Grid>
+
+            <!-- Touch-friendly Resize Splitter Handle with double-headed arrow -->
+            <Grid x:Name="ResizeHandle" 
+                  Grid.Column="1" 
+                  WidthRequest="20" 
+                  HorizontalOptions="Center" 
+                  VerticalOptions="Fill" 
+                  BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <PanGestureRecognizer PanUpdated="OnResizePanUpdated"/>
+                </Grid.GestureRecognizers>
+
+                <!-- Thin splitter line -->
+                <BoxView WidthRequest="4" 
+                         BackgroundColor="#333333" 
+                         HorizontalOptions="Center" 
+                         VerticalOptions="Fill" 
+                         InputTransparent="True"/>
+
+                <!-- Semi-transparent middle touch grip handle with double-headed arrow ↔ -->
+                <Border WidthRequest="20" 
+                        HeightRequest="48" 
+                        StrokeShape="RoundRectangle 10" 
+                        BackgroundColor="#90444444" 
+                        StrokeThickness="1" 
+                        Stroke="#44ffffff" 
+                        HorizontalOptions="Center" 
+                        VerticalOptions="Center"
+                        InputTransparent="True">
+                    <Label Text="↔" 
+                           TextColor="#FFFFFF" 
+                           FontSize="14" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center"/>
+                </Border>
+            </Grid>
         </Grid>
 
-        <!-- 3. EDITOR AREA (Vùng làm việc chính bên phải) -->
-        
-        <Grid x:Name="xMain" Grid.Column="2" RowDefinitions="Auto,*" BackgroundColor="#1e1e1e">
-            <Label Grid.Row="0" Text="Nội dung file code hoặc màn hình chính ở đây..." 
-                   TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
-            <!-- Hàng 1: WebView chiếm trọn phần còn lại -->
-            <WebView Grid.Row="1"
-                x:Name="PdfViewer"
-                       
-                HorizontalOptions="Fill"
-                VerticalOptions="Fill" />
+        <!-- 3. BOOK CHAT AREA (Vùng làm việc chính bên phải) -->
+        <Grid x:Name="xMain" Grid.Column="2" BackgroundColor="#1e1e1e" SizeChanged="OnMainSizeChanged">
+            <!-- Row 0: Document Viewer (Label + WebView) -->
+            <!-- Row 1: Chat Resize Handle -->
+            <!-- Row 2: Chat Panel (Portrait: from bottom; overridden in code for Landscape: right) -->
 
+            <!-- Document Viewer panel (occupies Row/Col 0) -->
+            <Grid x:Name="xDocumentPanel" BackgroundColor="#1e1e1e"
+                  RowDefinitions="Auto,*">
+                <Label Grid.Row="0" Text="Nội dung file code hoặc màn hình chính ở đây..."
+                       TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <WebView Grid.Row="1"
+                         x:Name="PdfViewer"
+                         HorizontalOptions="Fill"
+                         VerticalOptions="Fill" />
+            </Grid>
+
+            <!-- Chat Activity Bar (nút bấm để bật/tắt Chat Panel) -->
+            <Border x:Name="ChatActivityBar"
+                    StrokeThickness="0"
+                    BackgroundColor="#1e1e1e"
+                    HeightRequest="45"
+                    VerticalOptions="Start"
+                    WidthRequest="45">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnChatActivityTapped"/>
+                </Border.GestureRecognizers>
+                <Grid WidthRequest="110" HeightRequest="110" HorizontalOptions="Center" VerticalOptions="Start">
+                    <Label x:Name="lbChatActivityTab"
+                           TextColor="#858585"
+                           FontSize="12"
+                           Margin="-10,0,0,0"
+                           VerticalOptions="Start"
+                           HorizontalOptions="Start"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Start"
+                           VerticalTextAlignment="Start"
+                           LineBreakMode="NoWrap"
+                           InputTransparent="True"
+                           Rotation="0" />
+                </Grid>
+            </Border>
+
+            <!-- Chat Resize Handle (touch-friendly, placed between doc viewer and chat panel) -->
+            <Grid x:Name="ChatResizeHandle"
+                  BackgroundColor="Transparent"
+                  HorizontalOptions="Fill"
+                  VerticalOptions="Fill">
+                <Grid.GestureRecognizers>
+                    <PanGestureRecognizer PanUpdated="OnChatResizePanUpdated"/>
+                </Grid.GestureRecognizers>
+                <!-- Thin background line -->
+                <BoxView x:Name="ChatResizeLine"
+                         BackgroundColor="#333333"
+                         HorizontalOptions="Fill"
+                         VerticalOptions="Fill"
+                         InputTransparent="True"/>
+                <!-- Centered grip with double arrow label -->
+                <Border x:Name="ChatResizeGrip"
+                        StrokeShape="RoundRectangle 10"
+                        BackgroundColor="#90444444"
+                        StrokeThickness="1"
+                        Stroke="#44ffffff"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        InputTransparent="True">
+                    <Label x:Name="lbChatResizeArrow"
+                           Text="↕"
+                           TextColor="#FFFFFF"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </Border>
+            </Grid>
+
+            <!-- Chat Panel -->
+            <Grid x:Name="xChatPanel" BackgroundColor="#252526">
+                <Grid.GestureRecognizers>
+                    <PointerGestureRecognizer PointerEntered="OnChatPointerEntered" PointerExited="OnChatPointerExited"/>
+                </Grid.GestureRecognizers>
+                <Grid RowDefinitions="Auto, *">
+                    <!-- Chat Panel Header -->
+                    <Grid Grid.Row="0" HeightRequest="36" BackgroundColor="#2d2d2d" Padding="10,0,6,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Label x:Name="lbChatTitle"
+                               Text="Chat"
+                               TextColor="#CCCCCC"
+                               VerticalOptions="Center"
+                               FontAttributes="Bold"
+                               FontSize="12"/>
+                        <Button x:Name="btnChatPin"
+                                Grid.Column="1"
+                                Text="📍"
+                                TextColor="#858585"
+                                FontSize="12"
+                                WidthRequest="28"
+                                HeightRequest="28"
+                                Padding="0"
+                                BackgroundColor="Transparent"
+                                CornerRadius="4"
+                                Clicked="OnChatPinClicked"/>
+                    </Grid>
+                    <!-- Chat Content -->
+                    <ContentView x:Name="ChatPanelContent" Grid.Row="1"/>
+                </Grid>
+            </Grid>
         </Grid>
 
     </Grid>
