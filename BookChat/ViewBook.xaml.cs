@@ -252,12 +252,47 @@ public partial class ViewBook : ContentPage
     {
         xSideBarPanel.IsVisible = false;
         SidebarColumn.Width = 0;
+        switch (currentTab)
+        {
+            case "library":
+                lbLibrary.TextColor = Color.FromArgb("#858585");
+                break;
+            case "note":
+                lbNote.TextColor = Color.FromArgb("#858585");
+                break;
+            case "bookmark": 
+                lbBookmark.TextColor = Color.FromArgb("#858585");
+                break;
+            default:
+                break;
+        }
     }
 
     private void ShowSidebar()
     {
         xSideBarPanel.IsVisible = true;
         SidebarColumn.Width = Math.Max(MinSidebarWidth, _savedWidth);
+        switch (currentTab)
+        {
+            case "library":
+                lbLibrary.TextColor = Color.FromArgb("#FFFFFF");
+                lbNote.TextColor = Color.FromArgb("#858585");
+                lbBookmark.TextColor = Color.FromArgb("#858585");
+                break;
+            case "note":
+                lbNote.TextColor = Color.FromArgb("#FFFFFF");
+                lbLibrary.TextColor = Color.FromArgb("#858585");
+                lbBookmark.TextColor = Color.FromArgb("#858585");
+                break;
+            case "bookmark":
+                lbBookmark.TextColor = Color.FromArgb("#FFFFFF");
+                lbNote.TextColor = Color.FromArgb("#858585");
+                lbLibrary.TextColor = Color.FromArgb("#858585");
+                break;
+            default:
+                break;
+        }
+
     }
 
     private void OnTabTapped(object sender, TappedEventArgs e)
