@@ -200,15 +200,15 @@ namespace BookChat.StorageService.Implement
 #endif
         }
 
-        public StorageItem? GetFromId(string id, string rootId)
+        public async Task<StorageItem?> GetFromId(string id, string rootId)
         {
 #if ANDROID
             if (string.IsNullOrWhiteSpace(id))
-                return null;
+                return await Task.FromResult<StorageItem?>(null);
 
             var resolver = Android.App.Application.Context.ContentResolver;
             if (resolver == null)
-                return null;
+                return await Task.FromResult<StorageItem?>(null);
 
             Android.Net.Uri? uri;
 
@@ -228,7 +228,7 @@ namespace BookChat.StorageService.Implement
             }
 
             if (uri == null)
-                return null;
+                return await Task.FromResult<StorageItem?>(null);
 
             string[] projection =
             {
@@ -258,14 +258,15 @@ namespace BookChat.StorageService.Implement
             var mimeType = cursor.GetString(
                 cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnMimeType));
 
-            return new StorageItem
-            {
-                Id = id,
-                DocumentId = documentId,
-                ParentDocumentId = null,
-                DisplayName = displayName,
-                IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
-            };
+            return await Task.FromResult<StorageItem?>(
+                new StorageItem
+                {
+                    Id = id,
+                    DocumentId = documentId,
+                    ParentDocumentId = null,
+                    DisplayName = displayName,
+                    IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
+                });
 #else
             throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
@@ -362,6 +363,16 @@ namespace BookChat.StorageService.Implement
             throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
+        public Task<StorageItem?> GetParentFolder(string id, string rootFolderId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<StorageItem>> GetPdfFiles(StorageItem storageItem, bool recursive = false)
+        {
+            throw new NotImplementedException();
+        }
+
 #if ANDROID
 
         private static Android.Net.Uri? GetTreeUriFromDocumentUri(StorageItem storageItem)
@@ -379,6 +390,7 @@ namespace BookChat.StorageService.Implement
                 documentUri.Authority!,
                 treeDocumentId);
         }
+
 #endif
     }
 }

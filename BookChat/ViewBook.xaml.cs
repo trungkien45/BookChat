@@ -1,6 +1,7 @@
 using BookChat.Resources;
 using BookChat.StorageService;
 using BookChat.Views;
+using System.Globalization;
 
 namespace BookChat;
 
@@ -119,7 +120,7 @@ public partial class ViewBook : ContentPage
         if (_savedWidth < MinSidebarWidth) _savedWidth = 250.0;
 
         UpdatePinButtonVisual();
-        if(_isPinned)
+        if (_isPinned)
             ChooseTabSidebar(currentTab);
 
         SetupChatPanel();
@@ -324,7 +325,7 @@ public partial class ViewBook : ContentPage
     {
         bool chatVisible = xChatPanel.IsVisible;
         double chatSize = _isLandscape ? _savedChatWidth : _savedChatHeight;
-
+        UpdateSideBarTabLabelMargins();
         if (_isLandscape)
         {
             // Landscape: Col0=DocPanel(*) | Col1=ChatActivityBar(45) | Col2=ResizeHandle(20) | Col3=ChatPanel
@@ -335,10 +336,10 @@ public partial class ViewBook : ContentPage
             xMain.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(chatVisible ? 20 : 0))); // 2: ResizeHandle
             xMain.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(chatVisible ? chatSize : 0))); // 3: ChatPanel
 
-            Grid.SetRow(xDocumentPanel, 0);    Grid.SetColumn(xDocumentPanel, 0);    Grid.SetRowSpan(xDocumentPanel, 1);    Grid.SetColumnSpan(xDocumentPanel, 1);
-            Grid.SetRow(ChatActivityBar, 0);   Grid.SetColumn(ChatActivityBar, 1);
-            Grid.SetRow(ChatResizeHandle, 0);  Grid.SetColumn(ChatResizeHandle, 2);
-            Grid.SetRow(xChatPanel, 0);        Grid.SetColumn(xChatPanel, 3);
+            Grid.SetRow(xDocumentPanel, 0); Grid.SetColumn(xDocumentPanel, 0); Grid.SetRowSpan(xDocumentPanel, 1); Grid.SetColumnSpan(xDocumentPanel, 1);
+            Grid.SetRow(ChatActivityBar, 0); Grid.SetColumn(ChatActivityBar, 1);
+            Grid.SetRow(ChatResizeHandle, 0); Grid.SetColumn(ChatResizeHandle, 2);
+            Grid.SetRow(xChatPanel, 0); Grid.SetColumn(xChatPanel, 3);
 
             // Activity bar: vertical text (rotated)
             ChatActivityBar.WidthRequest = 45;
@@ -346,7 +347,6 @@ public partial class ViewBook : ContentPage
             ChatActivityBar.VerticalOptions = LayoutOptions.Start;
             ChatActivityBar.HorizontalOptions = LayoutOptions.Center;
             lbChatActivityTab.Rotation = -90;
-            lbChatActivityTab.Margin = new Thickness(-10, 50, 0, 0);
             // Resize handle grip: vertical bar ↔
             ChatResizeHandle.WidthRequest = 20;
             ChatResizeHandle.HeightRequest = -1;
@@ -364,10 +364,10 @@ public partial class ViewBook : ContentPage
             xMain.RowDefinitions.Add(new RowDefinition(new GridLength(chatVisible ? 20 : 0)));             // 2: ResizeHandle
             xMain.RowDefinitions.Add(new RowDefinition(new GridLength(chatVisible ? chatSize : 0)));       // 3: ChatPanel
 
-            Grid.SetColumn(xDocumentPanel, 0);   Grid.SetRow(xDocumentPanel, 0);   Grid.SetRowSpan(xDocumentPanel, 1);  Grid.SetColumnSpan(xDocumentPanel, 1);
-            Grid.SetColumn(ChatActivityBar, 0);  Grid.SetRow(ChatActivityBar, 1);
+            Grid.SetColumn(xDocumentPanel, 0); Grid.SetRow(xDocumentPanel, 0); Grid.SetRowSpan(xDocumentPanel, 1); Grid.SetColumnSpan(xDocumentPanel, 1);
+            Grid.SetColumn(ChatActivityBar, 0); Grid.SetRow(ChatActivityBar, 1);
             Grid.SetColumn(ChatResizeHandle, 0); Grid.SetRow(ChatResizeHandle, 2);
-            Grid.SetColumn(xChatPanel, 0);       Grid.SetRow(xChatPanel, 3);
+            Grid.SetColumn(xChatPanel, 0); Grid.SetRow(xChatPanel, 3);
 
             // Activity bar: horizontal text (no rotation)
             ChatActivityBar.HeightRequest = 45;
@@ -375,7 +375,6 @@ public partial class ViewBook : ContentPage
             ChatActivityBar.VerticalOptions = LayoutOptions.Center;
             ChatActivityBar.HorizontalOptions = LayoutOptions.Start;
             lbChatActivityTab.Rotation = 0;
-            lbChatActivityTab.Margin = new Thickness(0, 15, 0, 0);
             // Resize handle grip: horizontal bar ↕
             ChatResizeHandle.HeightRequest = 20;
             ChatResizeHandle.WidthRequest = -1;
@@ -389,6 +388,34 @@ public partial class ViewBook : ContentPage
 #if WINDOWS
         SetChatCursorForHandle();
 #endif
+    }
+
+    private void UpdateSideBarTabLabelMargins()
+    {
+        string language = Preferences.Get(Const.appLanguagePreferenceKey, CultureInfo.CurrentUICulture.Name);
+        bool isVietnamese = language.StartsWith(Const.VNlangprefix);
+        bool isPortrait = !_isLandscape;
+#if WINDOWS
+        if (isVietnamese)
+        {
+            lbChatActivityTab.Margin = new Thickness(-12.5, 50, 0, 0);
+            lbBookmark.Margin = new Thickness(-9, 0, 0, 0);
+            lbLibrary.Margin = new Thickness(-5.45, 0, 0, 0);
+            lbNote.Margin = new Thickness(-3, 0, 0, 0);
+        }
+        else
+        {
+            lbChatActivityTab.Margin = new Thickness(7, 50, 0, 0);
+            lbLibrary.Margin = new Thickness(-2.5, 0, 0, 0);
+            lbNote.Margin = new Thickness(0.5, 0, 0, 0);
+            lbBookmark.Margin = new Thickness(-14.2, 0, 0, 0);
+        }
+        if (isPortrait)
+        {
+            lbChatActivityTab.Margin = new Thickness(0, 15, 0, 0);
+        }
+#endif
+
     }
 
     private void SetupChatPanel()

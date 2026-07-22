@@ -43,9 +43,9 @@ namespace BookChat
             _dbSessionFactory = dbSessionFactory;
         }
 
-        private StorageItem CreateInitialStorageItem(string storedPath)
+        private async Task<StorageItem> CreateInitialStorageItem(string storedPath)
         {
-            return _storageService.GetFromId(storedPath, storedPath)??
+            return await _storageService.GetFromId(storedPath, storedPath) ??
                 new StorageItem 
             { 
                 Id = storedPath, 

@@ -17,11 +17,14 @@ namespace BookChat
         public const string bookEmojiGlyph = "📙";
         public const char breadcrumbSeparatorChar = '/';
         public const string appLanguagePreferenceKey = "AppLanguage";
+        public const string appChatProvider = "AppChatProvider";
         public const string pipeSeparator = "|";
         public const string sidebarPinnedPreferenceKey = "SidebarPinned";
         public const string sidebarWidthPreferenceKey = "SidebarWidth";
         public const string chatPinnedPreferenceKey = "ChatPinned";
         public const string chatWidthPreferenceKey = "ChatWidth";
         public const string chatHeightPreferenceKey = "ChatHeight";
+        public const string VNlangprefix = "vi";
+        public const string ENLang = "en-US";
     }
 }

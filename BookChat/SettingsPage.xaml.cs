@@ -89,7 +89,7 @@ namespace BookChat
 
                 if (storageService != null && bookService != null)
                 {
-                    var rootItem = storageService.GetFromId(path, path) ?? new StorageItem 
+                    var rootItem = await storageService.GetFromId(path, path) ?? new StorageItem 
                     { 
                         Id = path, 
                         DocumentId = "", 

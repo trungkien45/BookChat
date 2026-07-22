@@ -21,7 +21,7 @@
                 </Border.GestureRecognizers>
 
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
-                <Grid WidthRequest="120" HeightRequest="120" Padding="-8,0,0,0">
+                <Grid WidthRequest="120" HeightRequest="120">
                     <Label
                         x:Name="lbLibrary" 
                         TextColor="#858585" 
@@ -41,7 +41,7 @@
                     <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="note"/>
                 </Border.GestureRecognizers>
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
-                <Grid WidthRequest="120" HeightRequest="120" Padding="-2,0,0,0">
+                <Grid WidthRequest="120" HeightRequest="120">
                     <Label x:Name="lbNote" 
                         TextColor="#858585" 
                         FontSize="12" 
@@ -61,7 +61,7 @@
                     <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="bookmark"/>
                 </Border.GestureRecognizers>
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
-                <Grid WidthRequest="120" HeightRequest="120" Padding="-7,0,0,0">
+                <Grid WidthRequest="120" HeightRequest="120">
                     <Label x:Name="lbBookmark" 
                         TextColor="#858585" 
                         FontSize="12" 
@@ -168,7 +168,7 @@
                 <WebView Grid.Row="1"
                          x:Name="PdfViewer"
                          HorizontalOptions="Fill"
-                         VerticalOptions="Fill" />
+                         VerticalOptions="Fill" IsVisible="False" />
             </Grid>
 
             <!-- Chat Activity Bar (nút bấm để bật/tắt Chat Panel) -->
