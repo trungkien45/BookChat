@@ -20750,23 +20750,11 @@ export { PDFViewerApplication, AppConstants as PDFViewerApplicationConstants, Ap
 
 //# sourceMappingURL=viewer.mjs.map
 // Thêm đoạn này vào cuối file Resources\Raw\pdfjs\web\viewer.js
-window.addEventListener("message", function (event) {
-    // Nhận chuỗi Base64 từ C# gửi qua
-    if (event.data && event.data.type === "LOAD_BYTE_ARRAY") {
-        var base64Data = event.data.data;
-        
-        // Chuyển Base64 thành Uint8Array
-        var raw = window.atob(base64Data);
-        var rawLength = raw.length;
-        var array = new Uint8Array(new ArrayBuffer(rawLength));
+globalThis.loadPdf = async function(base64) {
+    console.log("loadPdf called");
 
-        for (var i = 0; i < rawLength; i++) {
-            array[i] = raw.charCodeAt(i);
-        }
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
 
-        // Gọi hàm nội bộ của PDF.js để mở trực tiếp mảng byte từ RAM
-        if (window.PDFViewerApplication) {
-            window.PDFViewerApplication.open({ data: array });
-        }
-    }
-});
+    await PDFViewerApplication.open({ data: bytes });
+};

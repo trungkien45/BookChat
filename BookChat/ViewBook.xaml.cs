@@ -1,6 +1,7 @@
 using BookChat.Resources;
 using BookChat.StorageService;
 using BookChat.Views;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace BookChat;
@@ -17,11 +18,7 @@ public partial class ViewBook : ContentPage
         set
         {
             _file = value;
-#if ANDROID
             LoadPdf();
-#elif WINDOWS
-            LoadPdf();
-#endif
         }
     }
     private void LoadPdf()
@@ -103,14 +100,7 @@ public partial class ViewBook : ContentPage
         if (e.Result == WebNavigationResult.Success)
         {
             // Execute a script to send the binary data to the viewer via the secure postMessage function
-            string jsScript = $@"
-                    window.postMessage({{
-                        type: 'LOAD_BYTE_ARRAY',
-                        data: '{base64String}'
-                    }}, '*');";
-
-            // Execute javaScript necessary to load the PDF data into the viewer
-            await PdfViewer.EvaluateJavaScriptAsync(jsScript);
+            await PdfViewer.EvaluateJavaScriptAsync($"window.loadPdf('{base64String}')");
         }
     }
     private async void ContentPage_Loaded(object sender, EventArgs e)
