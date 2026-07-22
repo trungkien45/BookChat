@@ -248,10 +248,10 @@ namespace BookChat
             catch { }
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
-            _ = LoadLibPathAsync();
+            await LoadLibPathAsync();
         }
 
         protected override void OnSizeAllocated(double width, double height)
@@ -330,7 +330,7 @@ namespace BookChat
                 return;
             }
 
-            var initialItem = CreateInitialStorageItem(storedPath);
+            var initialItem = await CreateInitialStorageItem(storedPath);
 
             // Initialize navigation state only here (root entry point)
             rootItem = initialItem;

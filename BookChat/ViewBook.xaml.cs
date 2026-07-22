@@ -20,18 +20,13 @@ public partial class ViewBook : ContentPage
 #if ANDROID
             LoadPdf();
 #elif WINDOWS
-            var filePath = _file?.Id;
-            if (!string.IsNullOrEmpty(filePath))
-            {
-                var fileUri = new Uri(filePath);
-                PdfViewer.Source = fileUri;
-            }
+            LoadPdf();
 #endif
         }
     }
-#if ANDROID
     private void LoadPdf()
     {
+#if ANDROID
         var uri = Android.Net.Uri.Parse(_file.Id);
         if (uri == null)
         {
@@ -53,8 +48,17 @@ public partial class ViewBook : ContentPage
             var pdfBytes = ms.ToArray();
             LoadPdfFromByteArray(PdfViewer, pdfBytes);
         }).Wait();
-    }
+#elif WINDOWS
+        Task.Run(async () =>
+        {
+            using var stream = new FileStream(_file.Id, FileMode.Open);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var pdfBytes = ms.ToArray();
+            LoadPdfFromByteArray(PdfViewer, pdfBytes);
+        }).Wait();
 #endif
+    }
     LibraryContent libraryContent;
     NoteContent noteContent;
     BookmarkContent bookmarkContent;
@@ -87,7 +91,7 @@ public partial class ViewBook : ContentPage
 #elif IOS
         PdfViewer.Source = "pdfjs/web/viewer.html"; // iOS automatically maps Resources/Raw to the app root
 #elif WINDOWS
-        PdfViewer.Source = "ms-appx-web:///Resources/Raw/pdfjs/web/viewer.html";
+        PdfViewer.Source = "pdfjs/web/viewer.html";
 #endif
 
         // Wait for the WebView to finish loading the PDF.js UI frame, then push the in-memory data

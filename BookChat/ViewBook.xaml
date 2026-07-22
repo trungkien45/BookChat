@@ -168,7 +168,7 @@
                 <WebView Grid.Row="1"
                          x:Name="PdfViewer"
                          HorizontalOptions="Fill"
-                         VerticalOptions="Fill" IsVisible="False" />
+                         VerticalOptions="Fill"/>
             </Grid>
 
             <!-- Chat Activity Bar (nút bấm để bật/tắt Chat Panel) -->
