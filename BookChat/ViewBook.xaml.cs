@@ -1,3 +1,5 @@
+using BookChat.Data.Service;
+using BookChat.Models;
 using BookChat.Resources;
 using BookChat.StorageService;
 using BookChat.Views;
@@ -21,6 +23,8 @@ public partial class ViewBook : ContentPage
             LoadPdf();
         }
     }
+    private Book? book = null;
+    private readonly IBookService bookService;
     private void LoadPdf()
     {
 #if ANDROID
@@ -44,6 +48,7 @@ public partial class ViewBook : ContentPage
             await stream.CopyToAsync(ms);
             var pdfBytes = ms.ToArray();
             LoadPdfFromByteArray(PdfViewer, pdfBytes);
+            book = await bookService.GetBookByPathAsync(_file.Id);
         }).Wait();
 #elif WINDOWS
         Task.Run(async () =>
@@ -53,6 +58,7 @@ public partial class ViewBook : ContentPage
             await stream.CopyToAsync(ms);
             var pdfBytes = ms.ToArray();
             LoadPdfFromByteArray(PdfViewer, pdfBytes);
+            book = await bookService.GetBookByPathAsync(_file.Id);
         }).Wait();
 #endif
     }
@@ -60,14 +66,10 @@ public partial class ViewBook : ContentPage
     NoteContent noteContent;
     BookmarkContent bookmarkContent;
     ChatContent chatContent;
-    public ViewBook()
+    public ViewBook(IBookService bookService, LibraryContent libraryContent, NoteContent noteContent, BookmarkContent bookmarkContent, ChatContent chatContent)
     {
         _file = new StorageItem();
         InitializeComponent();
-        libraryContent = new LibraryContent();
-        noteContent = new NoteContent();
-        bookmarkContent = new BookmarkContent();
-        chatContent = new ChatContent();
 #if ANDROID
         Microsoft.Maui.Handlers.WebViewHandler.Mapper.AppendToMapping("AllowPdfJsInternalScripts", (handler, view) =>
         {
@@ -78,6 +80,12 @@ public partial class ViewBook : ContentPage
             handler.PlatformView.Settings.DomStorageEnabled = true; //Very important for the PDF.js UI
         });
 #endif
+        this.bookService = bookService;
+        this.libraryContent = libraryContent;
+        this.noteContent = noteContent;
+        this.bookmarkContent = bookmarkContent;
+        this.chatContent = chatContent;
+
     }
     public void LoadPdfFromByteArray(WebView myWebView, byte[] pdfBytes)
     {
@@ -261,7 +269,7 @@ public partial class ViewBook : ContentPage
             case "note":
                 lbNote.TextColor = Color.FromArgb("#858585");
                 break;
-            case "bookmark": 
+            case "bookmark":
                 lbBookmark.TextColor = Color.FromArgb("#858585");
                 break;
             default:
@@ -285,11 +293,19 @@ public partial class ViewBook : ContentPage
                 lbNote.TextColor = Color.FromArgb("#FFFFFF");
                 lbLibrary.TextColor = Color.FromArgb("#858585");
                 lbBookmark.TextColor = Color.FromArgb("#858585");
+                if (book != null)
+                {
+                    noteContent.BookId = book.Id;
+                }
                 break;
             case "bookmark":
                 lbBookmark.TextColor = Color.FromArgb("#FFFFFF");
                 lbNote.TextColor = Color.FromArgb("#858585");
                 lbLibrary.TextColor = Color.FromArgb("#858585");
+                if (book != null)
+                {
+                    bookmarkContent.BookId = book.Id;
+                }
                 break;
             default:
                 break;
@@ -459,7 +475,7 @@ public partial class ViewBook : ContentPage
 
         lbChatTitle.Text = AppResources.ChatPanel;
         lbChatActivityTab.Text = AppResources.ChatPanel;
-        
+
         _isLandscape = xMain.Width > xMain.Height;
         ApplyOrientation();
         UpdateChatPinVisual();

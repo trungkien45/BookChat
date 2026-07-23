@@ -11,6 +11,7 @@ namespace BookChat.Data.Providers
     {
         IBookRepository BookRepository { get; }
         IBookmarkRepository BookmarkRepository { get; }
+        INoteRepository NoteRepository { get; }
         IUnitOfWork UnitOfWork { get; }
     }
 }

@@ -18,9 +18,9 @@ namespace BookChat.Data.Providers.Sqlite.Repo
             return await conn.ExecuteAsync("DELETE FROM Note WHERE Id = ?", note.Id);
         }
 
-        public async Task<int> DeleteNotesByBookIdAsync(Book book)
+        public async Task<int> DeleteNotesByBookIdAsync(int bookId)
         {
-            return await conn.ExecuteAsync("DELETE FROM Note WHERE BookId = ?", book.Id);
+            return await conn.ExecuteAsync("DELETE FROM Note WHERE BookId = ?", bookId);
         }
 
         public async Task<Note?> GetNoteByIdAsync(int id)
@@ -28,9 +28,9 @@ namespace BookChat.Data.Providers.Sqlite.Repo
             return (await conn.QueryAsync<Note>("SELECT Id, BookId, PageNumber, Content FROM Note WHERE Id = ?", id)).FirstOrDefault();
         }
 
-        public async Task<List<Note>> GetNotesByBookIdAsync(Book book)
+        public async Task<List<Note>> GetNotesByBookIdAsync(int bookId)
         {
-            return await conn.QueryAsync<Note>("SELECT Id, BookId, PageNumber, Content FROM Note WHERE BookId = ?", book.Id);
+            return await conn.QueryAsync<Note>("SELECT Id, BookId, PageNumber, Content FROM Note WHERE BookId = ?", bookId);
         }
 
         public async Task<int> InsertNoteAsync(Note note)

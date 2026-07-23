@@ -29,20 +29,6 @@ namespace BookChat
             _dbSessionFactory = dbSessionFactory;
         }
 
-        public MainPage(IStogareService storageService, IBookService bookService, string startPath, IDbSessionFactory dbSessionFactory)
-        {
-            InitializeComponent();
-            _storageService = storageService;
-            _bookService = bookService;
-            if (!string.IsNullOrEmpty(startPath))
-            {
-                var initialItem = CreateInitialStorageItem(startPath);
-                _ = LoadFileSystemLibrary();
-            }
-
-            _dbSessionFactory = dbSessionFactory;
-        }
-
         private async Task<StorageItem> CreateInitialStorageItem(string storedPath)
         {
             return await _storageService.GetFromId(storedPath, storedPath) ??
@@ -336,6 +322,12 @@ namespace BookChat
             rootItem = initialItem;
             currentItem = initialItem;
             navStack.Clear();
+            if (rootItem != null)
+            {
+                var allPdfItems = await _storageService.GetPdfFilesAndFolders(rootItem, true);
+                var pdfFiles = allPdfItems.Select(x => x.Id).ToList();
+                await _bookService.SyncBooksAsync(pdfFiles);
+            }
 
             await LoadFileSystemLibrary();
         }
@@ -448,13 +440,6 @@ namespace BookChat
             });
         }
 
-        private void InitializeNavigation(StorageItem initialItem)
-        {
-            // Only reset navigation when starting from a new root
-            rootItem = initialItem;
-            currentItem = initialItem;
-            navStack.Clear();
-        }
 
         private View CreateItemView(string name, bool isFolder, Action? onTapped = null, StorageItem? item = null, bool enableMenu = true)
         {

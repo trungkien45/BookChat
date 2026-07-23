@@ -13,6 +13,7 @@ namespace BookChat.Data.Providers.Sqlite
             _conn = conn;
             BookRepository = new SqliteBookRepository(_conn);
             BookmarkRepository = new SqliteBookmarkRepository(_conn);
+            NoteRepository = new SqliteNoteRepository(_conn);
             UnitOfWork = new SqliteUnitOfWork(_conn);
         }
 
@@ -21,6 +22,8 @@ namespace BookChat.Data.Providers.Sqlite
         public IBookmarkRepository BookmarkRepository { get; }
 
         public IUnitOfWork UnitOfWork { get; }
+
+        public INoteRepository NoteRepository { get; }
 
         public ValueTask DisposeAsync()
         {

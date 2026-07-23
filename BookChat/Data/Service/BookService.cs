@@ -62,7 +62,9 @@ namespace BookChat.Data.Service
             return await ExecuteAsync(db => db.UnitOfWork.ExecuteInTransactionAsync(async () => 
             {
                 return 
-                    await db.BookmarkRepository.DeleteBookmarksByBookIdAsync(book) 
+                    await db.BookmarkRepository.DeleteBookmarksByBookIdAsync(book.Id) 
+                +
+                    await db.NoteRepository.DeleteNotesByBookIdAsync(book.Id)
                 +
                     await db.BookRepository.DeleteBookAsync(book);
             }));

@@ -18,9 +18,9 @@ namespace BookChat.Data.Providers.Sqlite.Repo
             return await conn.ExecuteAsync("DELETE FROM Bookmark WHERE Id = ?", bookmark.Id);
         }
 
-        public async Task<int> DeleteBookmarksByBookIdAsync(Book book)
+        public async Task<int> DeleteBookmarksByBookIdAsync(int bookId)
         {
-            return await conn.ExecuteAsync("DELETE FROM Bookmark WHERE BookId = ?", book.Id);
+            return await conn.ExecuteAsync("DELETE FROM Bookmark WHERE BookId = ?", bookId);
         }
 
         public async Task<Bookmark?> GetBookmarkByIdAsync(int id)
@@ -28,9 +28,9 @@ namespace BookChat.Data.Providers.Sqlite.Repo
             return (await conn.QueryAsync<Bookmark>("SELECT Id, BookId, PageNumber, Name FROM Bookmark WHERE Id = ?", id)).FirstOrDefault();
         }
 
-        public async Task<List<Bookmark>> GetBookmarksByBookIdAsync(Book book)
+        public async Task<List<Bookmark>> GetBookmarksByBookIdAsync(int bookId)
         {
-            return await conn.QueryAsync<Bookmark>("SELECT Id, BookId, PageNumber, Name FROM Bookmark WHERE BookId = ?", book.Id);
+            return await conn.QueryAsync<Bookmark>("SELECT Id, BookId, PageNumber, Name FROM Bookmark WHERE BookId = ?", bookId);
         }
 
         public async Task<int> InsertBookmarkAsync(Bookmark bookmark)
