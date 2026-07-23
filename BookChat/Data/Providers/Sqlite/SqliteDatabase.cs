@@ -30,6 +30,15 @@ namespace BookChat.Data.Providers.Sqlite
                     FOREIGN KEY(BookId) REFERENCES Book(Id) ON DELETE CASCADE
                 )
                 """);
+            await _connection.ExecuteAsync("""
+                CREATE TABLE IF NOT EXISTS Note (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    BookId INTEGER NOT NULL,
+                    PageNumber INTEGER NOT NULL,
+                    Content TEXT NULL,
+                    FOREIGN KEY(BookId) REFERENCES Book(Id) ON DELETE CASCADE
+                )
+                """);
             return _connection;
         }
     }
