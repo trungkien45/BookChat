@@ -252,6 +252,7 @@ public partial class ViewBook : ContentPage
     {
         xSideBarPanel.IsVisible = false;
         SidebarColumn.Width = 0;
+        //TODO using svg
         switch (currentTab)
         {
             case "library":
@@ -272,6 +273,7 @@ public partial class ViewBook : ContentPage
     {
         xSideBarPanel.IsVisible = true;
         SidebarColumn.Width = Math.Max(MinSidebarWidth, _savedWidth);
+        //TODO using svg
         switch (currentTab)
         {
             case "library":
@@ -418,7 +420,7 @@ public partial class ViewBook : ContentPage
         SetChatCursorForHandle();
 #endif
     }
-
+    //TODO using svg
     private void UpdateSideBarTabLabelMargins()
     {
         string language = Preferences.Get(Const.appLanguagePreferenceKey, CultureInfo.CurrentUICulture.Name);
@@ -457,13 +459,12 @@ public partial class ViewBook : ContentPage
 
         lbChatTitle.Text = AppResources.ChatPanel;
         lbChatActivityTab.Text = AppResources.ChatPanel;
-        ChatPanelContent.Content = new Label { Text = "Chat content here...", TextColor = Colors.White, Padding = 10 };
-
+        
         _isLandscape = xMain.Width > xMain.Height;
         ApplyOrientation();
         UpdateChatPinVisual();
     }
-
+    //TODO using svg
     private void UpdateChatPinVisual()
     {
         if (_isChatPinned)
@@ -508,7 +509,7 @@ public partial class ViewBook : ContentPage
             ? Color.FromArgb("#FFFFFF")
             : Color.FromArgb("#858585");
     }
-
+    //TODO using svg
     private void ShowChatPanel()
     {
         xChatPanel.IsVisible = true;
