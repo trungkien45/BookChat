@@ -200,73 +200,59 @@ namespace BookChat.StorageService.Implement
 #endif
         }
 
-        public async Task<StorageItem?> GetFromId(string id, string rootId)
+        public async Task<StorageItem?> GetRootFolder(string rootId)
         {
 #if ANDROID
-            if (string.IsNullOrWhiteSpace(id))
-                return await Task.FromResult<StorageItem?>(null);
+            if (string.IsNullOrWhiteSpace(rootId))
+                return null;
 
             var resolver = Android.App.Application.Context.ContentResolver;
             if (resolver == null)
-                return await Task.FromResult<StorageItem?>(null);
+                return null;
 
-            Android.Net.Uri? uri;
+            var treeUri = Android.Net.Uri.Parse(rootId);
+            if (treeUri == null)
+                return null;
 
-            if (id == rootId)
-            {
-                var treeUri = Android.Net.Uri.Parse(rootId);
-                if (treeUri == null)
-                    return null;
-
-                uri = DocumentsContract.BuildDocumentUriUsingTree(
-                    treeUri,
-                    DocumentsContract.GetTreeDocumentId(treeUri));
-            }
-            else
-            {
-                uri = Android.Net.Uri.Parse(id);
-            }
+            var uri = DocumentsContract.BuildDocumentUriUsingTree(
+                treeUri,
+                DocumentsContract.GetTreeDocumentId(treeUri));
 
             if (uri == null)
-                return await Task.FromResult<StorageItem?>(null);
+                return null;
 
-            string[] projection =
+            return await Task.Run(() =>
             {
-                DocumentsContract.Document.ColumnDocumentId,
-                DocumentsContract.Document.ColumnDisplayName,
-                DocumentsContract.Document.ColumnMimeType
-            };
-
-
-            using var cursor = resolver.Query(uri, projection, null, null, null);
-
-            if (cursor == null || !cursor.MoveToFirst())
-                return null;
-
-            var documentId = cursor.GetString(
-                cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDocumentId));
-
-            if (documentId == null)
-                return null;
-
-            var displayName = cursor.GetString(
-                cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDisplayName));
-
-            if (displayName == null)
-                return null;
-
-            var mimeType = cursor.GetString(
-                cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnMimeType));
-
-            return await Task.FromResult<StorageItem?>(
-                new StorageItem
+                string[] projection =
                 {
-                    Id = id,
+                    DocumentsContract.Document.ColumnDocumentId,
+                    DocumentsContract.Document.ColumnDisplayName,
+                    DocumentsContract.Document.ColumnMimeType
+                };
+
+                using var cursor = resolver.Query(uri, projection, null, null, null);
+                if (cursor == null || !cursor.MoveToFirst())
+                    return null;
+
+                var documentId = cursor.GetString(
+                    cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDocumentId));
+                var displayName = cursor.GetString(
+                    cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDisplayName));
+                var mimeType = cursor.GetString(
+                    cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnMimeType));
+
+                if (documentId == null || displayName == null)
+                    return null;
+
+                return new StorageItem
+                {
+                    Id = rootId,
                     DocumentId = documentId,
                     ParentDocumentId = null,
                     DisplayName = displayName,
                     IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
-                });
+                };
+            });
 #else
             throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
@@ -363,14 +349,178 @@ namespace BookChat.StorageService.Implement
             throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
-        public Task<StorageItem?> GetParentFolder(string id, string rootFolderId)
+
+        public async Task<List<StorageItem>> GetPdfFiles(StorageItem storageItem, bool recursive = false)
         {
-            throw new NotImplementedException();
+#if ANDROID
+            return await Task.Run(() =>
+            {
+                var result = new List<StorageItem>();
+
+                var treeUri = GetTreeUriFromDocumentUri(storageItem);
+                var resolver = Android.App.Application.Context.ContentResolver;
+                if (resolver == null || treeUri == null)
+                    return result;
+
+                var itemsToProcess = new Queue<StorageItem>();
+                itemsToProcess.Enqueue(storageItem);
+
+                while (itemsToProcess.Count > 0)
+                {
+                    var currentItem = itemsToProcess.Dequeue();
+                    var parentDocumentId = string.IsNullOrWhiteSpace(currentItem.DocumentId)
+                        ? DocumentsContract.GetTreeDocumentId(treeUri)
+                        : currentItem.DocumentId;
+
+                    if (parentDocumentId == null)
+                        continue;
+
+                    var childrenUri = DocumentsContract.BuildChildDocumentsUriUsingTree(
+                        treeUri,
+                        parentDocumentId);
+
+                    if (childrenUri == null)
+                        continue;
+
+                    string[] projection =
+                    {
+                        DocumentsContract.Document.ColumnDocumentId,
+                        DocumentsContract.Document.ColumnDisplayName,
+                        DocumentsContract.Document.ColumnMimeType
+                    };
+
+                    using var cursor = resolver.Query(
+                        childrenUri,
+                        projection,
+                        null,
+                        null,
+                        null);
+
+                    if (cursor == null)
+                        continue;
+
+                    int idIndex = cursor.GetColumnIndex(DocumentsContract.Document.ColumnDocumentId);
+                    int nameIndex = cursor.GetColumnIndex(DocumentsContract.Document.ColumnDisplayName);
+                    int mimeIndex = cursor.GetColumnIndex(DocumentsContract.Document.ColumnMimeType);
+
+                    while (cursor.MoveToNext())
+                    {
+                        var documentId = cursor.GetString(idIndex);
+                        var displayName = cursor.GetString(nameIndex);
+                        var mimeType = cursor.GetString(mimeIndex);
+
+                        if (string.IsNullOrWhiteSpace(documentId) || string.IsNullOrWhiteSpace(displayName))
+                            continue;
+
+                        bool isDirectory = mimeType == DocumentsContract.Document.MimeTypeDir;
+
+                        if (isDirectory)
+                        {
+                            // Only pdf *files* are returned, but we still need to walk
+                            // into subfolders when a recursive search was requested.
+                            if (recursive)
+                            {
+                                var folderUri = DocumentsContract.BuildDocumentUriUsingTree(treeUri, documentId);
+                                if (folderUri == null || folderUri.ToString() == null)
+                                    continue;
+
+                                itemsToProcess.Enqueue(new StorageItem
+                                {
+                                    Id = folderUri.ToString()!,
+                                    DocumentId = documentId,
+                                    ParentDocumentId = parentDocumentId,
+                                    DisplayName = displayName,
+                                    IsDirectory = true
+                                });
+                            }
+
+                            continue;
+                        }
+
+                        if (!(displayName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || mimeType == "application/pdf"))
+                            continue;
+
+                        var fileUri = DocumentsContract.BuildDocumentUriUsingTree(treeUri, documentId);
+                        if (fileUri == null || fileUri.ToString() == null)
+                            continue;
+
+                        result.Add(new StorageItem
+                        {
+                            Id = fileUri.ToString()!,
+                            DocumentId = documentId,
+                            ParentDocumentId = parentDocumentId,
+                            DisplayName = displayName,
+                            IsDirectory = false
+                        });
+                    }
+                }
+
+                return result
+                    .OrderBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                    .ToList();
+            });
+#else
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
+#endif
         }
 
-        public Task<List<StorageItem>> GetPdfFiles(StorageItem storageItem, bool recursive = false)
+        public async Task<StorageItem?> GetParentFolder(StorageItem storageItem, string rootFolderId)
         {
-            throw new NotImplementedException();
+#if ANDROID
+            if (storageItem == null || string.IsNullOrWhiteSpace(storageItem.Id) || storageItem.Id == rootFolderId)
+                return null;
+
+            var resolver = Android.App.Application.Context.ContentResolver;
+            var treeUri = GetTreeUriFromDocumentUri(storageItem);
+            if (resolver == null || treeUri == null)
+                return null;
+
+            // Chỉ dựa vào ParentDocumentId đã được set sẵn từ lúc liệt kê
+            // (GetPdfFiles / GetPdfFilesAndFolders). Nếu item không có (ví dụ lấy
+            // qua GetFromId), coi như không xác định được cha.
+            var parentDocId = storageItem.ParentDocumentId;
+            if (string.IsNullOrWhiteSpace(parentDocId))
+                return null;
+
+            var parentUri = DocumentsContract.BuildDocumentUriUsingTree(treeUri, parentDocId);
+            if (parentUri == null)
+                return null;
+
+            return await Task.Run(() =>
+            {
+                string[] projection =
+                {
+                    DocumentsContract.Document.ColumnDocumentId,
+                    DocumentsContract.Document.ColumnDisplayName,
+                    DocumentsContract.Document.ColumnMimeType
+                };
+
+                using var cursor = resolver.Query(parentUri, projection, null, null, null);
+                if (cursor == null || !cursor.MoveToFirst())
+                    return null;
+
+                var documentId = cursor.GetString(
+                    cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDocumentId));
+                var displayName = cursor.GetString(
+                    cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnDisplayName));
+                var mimeType = cursor.GetString(
+                    cursor.GetColumnIndexOrThrow(DocumentsContract.Document.ColumnMimeType));
+
+                if (documentId == null || displayName == null)
+                    return null;
+
+                return new StorageItem
+                {
+                    Id = parentUri.ToString()!,
+                    DocumentId = documentId,
+                    ParentDocumentId = null,
+                    DisplayName = displayName,
+                    IsDirectory = mimeType == DocumentsContract.Document.MimeTypeDir
+                };
+            });
+#else
+            throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
+#endif
         }
 
 #if ANDROID

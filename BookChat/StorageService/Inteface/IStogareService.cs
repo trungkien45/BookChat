@@ -13,8 +13,8 @@ namespace BookChat.StorageService.Inteface
         Task<bool> CreateFolder(StorageItem storageItem, string folderName);
         Task<bool> Move(StorageItem source, StorageItem destination);
         Task<bool> Rename(StorageItem storageItem, string newName);
-        Task<StorageItem?> GetFromId(string id, string rootFolderId);
-        Task<StorageItem?> GetParentFolder(string id, string rootFolderId);
+        Task<StorageItem?> GetRootFolder(string rootFolderId);
+        Task<StorageItem?> GetParentFolder(StorageItem storageItem, string rootFolderId);
         Task<List<StorageItem>> GetPdfFiles(StorageItem storageItem, bool recursive = false);
     }
 }

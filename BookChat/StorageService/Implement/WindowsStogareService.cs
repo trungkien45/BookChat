@@ -102,55 +102,34 @@ namespace BookChat.StorageService.Implement
 #endif
         }
 
-        public async Task<StorageItem?> GetFromId(string id, string rootId)
+        public async Task<StorageItem?> GetRootFolder(string rootFolderId)
         {
 #if WINDOWS
-            var fullPath = id; // Assuming Id is the full path of the item
-            var rootPath = rootId; // Assuming rootId is the full path of the root folder
-            if (Directory.Exists(rootPath))
+            var rootPath = rootFolderId; // rootId là full path của thư mục gốc
+
+            if (!Directory.Exists(rootPath))
+                throw new ArgumentException("The provided rootId does not correspond to an existing directory.");
+
+            var fullPath = Path.GetFullPath(rootPath);
+            var displayName = Path.GetFileName(fullPath);
+
+            // Với ổ đĩa gốc kiểu "C:\", Path.GetFileName trả về chuỗi rỗng —
+            // fallback về chính đường dẫn để DisplayName không bị trống.
+            if (string.IsNullOrEmpty(displayName))
+                displayName = fullPath;
+
+            return await Task.FromResult(new StorageItem
             {
-                // 1. Convert both paths to absolute, fully qualified paths
-                string absoluteRoot = Path.GetFullPath(rootPath);
-                string absoluteTarget = Path.GetFullPath(fullPath);
-
-                // 2. Get the relative path from the root to the target
-                string relativePath = Path.GetRelativePath(absoluteRoot, absoluteTarget);
-
-                // 3. Ensure it doesn't escape the root ("..") and isn't a completely different root drive
-                bool isOutsideRoot = relativePath.StartsWith("..") || Path.IsPathRooted(relativePath);
-
-                // 4. Return true only if it is inside or exactly equals the root
-                if (!isOutsideRoot)
-
-                    if (Directory.Exists(fullPath))
-                    {
-                        return await Task.FromResult(new StorageItem
-                        {
-                            Id = fullPath,
-                            IsDirectory = true,
-                            DocumentId = Path.GetFileName(fullPath),
-                            DisplayName = Path.GetFileName(fullPath),
-                            ParentDocumentId = null
-                        });
-                    }
-                    else if (File.Exists(fullPath))
-                    {
-                        return await Task.FromResult(new StorageItem
-                        {
-                            Id = fullPath,
-                            IsDirectory = false,
-                            DocumentId = Path.GetFileName(fullPath),
-                            DisplayName = Path.GetFileName(fullPath),
-                            ParentDocumentId = null
-                        });
-                    }
-            }
-            throw new ArgumentException("The provided id does not correspond to an existing file or directory.");
+                Id = fullPath,
+                IsDirectory = true,
+                DocumentId = displayName,
+                DisplayName = displayName,
+                ParentDocumentId = null
+            });
 #else
             throw new PlatformNotSupportedException(PlatformNotSupportedMessage);
 #endif
         }
-
 
 
         public Task<bool> Move(StorageItem source, StorageItem destination)
@@ -200,14 +179,13 @@ namespace BookChat.StorageService.Implement
 #endif
         }
 
-        public async Task<StorageItem?> GetParentFolder(string id, string rootFolderId)
+        public async Task<StorageItem?> GetParentFolder(StorageItem storageItem, string rootFolderId)
         {
 #if WINDOWS
-            var fullPath = id;
+            var fullPath = storageItem.Id; // Assuming storageItem.Id is the full path of the item
             var rootPath = rootFolderId; // Assuming rootId is the full path of the root folder
-            if (id == rootFolderId)
+            if (fullPath == rootPath)
             {
-
                 return await Task.FromResult<StorageItem?>(null);
             }
             // 1. Convert both paths to absolute, fully qualified paths
@@ -231,7 +209,7 @@ namespace BookChat.StorageService.Implement
                     DocumentId = Path.GetFileName(parentPath)!,
                     Id = parentPath!,
                     IsDirectory = true,
-                    ParentDocumentId = id == rootFolderId ? null : Path.GetDirectoryName(parentPath)
+                    ParentDocumentId = parentPath == rootFolderId ? null : Path.GetDirectoryName(parentPath)
                 });
 #else
             throw new PlatformNotSupportedException(PlatformNotSupportedMessage);

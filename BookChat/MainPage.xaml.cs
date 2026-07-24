@@ -31,7 +31,7 @@ namespace BookChat
 
         private async Task<StorageItem> CreateInitialStorageItem(string storedPath)
         {
-            return await _storageService.GetFromId(storedPath, storedPath) ??
+            return await _storageService.GetRootFolder(storedPath) ??
                 new StorageItem 
             { 
                 Id = storedPath, 
