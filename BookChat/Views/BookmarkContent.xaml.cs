@@ -1,31 +1,60 @@
 using BookChat.Data.Service;
 using BookChat.Models;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace BookChat.Views;
 
-public partial class BookmarkContent : ContentView, INotifyPropertyChanged
+public partial class BookmarkContent : ContentView
 {
-    private int bookId;
-    private List<Bookmark> bookmarks;
     private readonly IBookmarkService bookmarkService;
+
+    private int bookId;
+    private int requestId;
+
     public BookmarkContent(IBookmarkService bookmarkService)
     {
         InitializeComponent();
+
         this.bookmarkService = bookmarkService;
+        BindingContext = this;
     }
-    public List<Bookmark> Bookmarks { get => bookmarks; set { bookmarks = value; OnPropertyChanged(); } }
+
+    private readonly ObservableCollection<Bookmark> bookmarks = [];
+
+    public ObservableCollection<Bookmark> Bookmarks => bookmarks;
+
     public int BookId
     {
-        get => bookId; 
+        get => bookId;
         set
         {
+            if (bookId == value)
+                return;
+
             bookId = value;
-            Task.Run(async () =>
-            {
-                Bookmarks = await bookmarkService.GetBookmarkInBook(bookId);
-            });
+            OnPropertyChanged();
+
+            _ = LoadBookmarksAsync(bookId);
         }
     }
 
+    private async Task LoadBookmarksAsync(int id)
+    {
+        var currentRequest = ++requestId;
+
+        try
+        {
+            var result = await bookmarkService.GetBookmarkInBook(id);
+
+            if (currentRequest != requestId)
+                return;
+
+            Bookmarks.ReplaceWith(result);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+    }
 }
