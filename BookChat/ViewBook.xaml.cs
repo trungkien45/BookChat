@@ -113,9 +113,9 @@ public partial class ViewBook : ContentPage
     }
     private async void ContentPage_Loaded(object sender, EventArgs e)
     {
-        lbLibrary.Text = AppResources.Library;
-        lbBookmark.Text = AppResources.Bookmarks;
-        lbNote.Text = AppResources.Notes;
+        //lbLibrary.Text = AppResources.Library;
+        //lbBookmark.Text = AppResources.Bookmarks;
+        //lbNote.Text = AppResources.Notes;
 
         _isPinned = Preferences.Default.Get(Const.sidebarPinnedPreferenceKey, false);
         _savedWidth = Preferences.Default.Get(Const.sidebarWidthPreferenceKey, 250.0);
@@ -264,13 +264,13 @@ public partial class ViewBook : ContentPage
         switch (currentTab)
         {
             case "library":
-                lbLibrary.TextColor = Color.FromArgb("#858585");
+                //lbLibrary.TextColor = Color.FromArgb("#858585");
                 break;
             case "note":
-                lbNote.TextColor = Color.FromArgb("#858585");
+                //lbNote.TextColor = Color.FromArgb("#858585");
                 break;
             case "bookmark":
-                lbBookmark.TextColor = Color.FromArgb("#858585");
+                //lbBookmark.TextColor = Color.FromArgb("#858585");
                 break;
             default:
                 break;
@@ -285,23 +285,23 @@ public partial class ViewBook : ContentPage
         switch (currentTab)
         {
             case "library":
-                lbLibrary.TextColor = Color.FromArgb("#FFFFFF");
-                lbNote.TextColor = Color.FromArgb("#858585");
-                lbBookmark.TextColor = Color.FromArgb("#858585");
+                //lbLibrary.TextColor = Color.FromArgb("#FFFFFF");
+                //lbNote.TextColor = Color.FromArgb("#858585");
+                //lbBookmark.TextColor = Color.FromArgb("#858585");
                 break;
             case "note":
-                lbNote.TextColor = Color.FromArgb("#FFFFFF");
-                lbLibrary.TextColor = Color.FromArgb("#858585");
-                lbBookmark.TextColor = Color.FromArgb("#858585");
+                //lbNote.TextColor = Color.FromArgb("#FFFFFF");
+                //lbLibrary.TextColor = Color.FromArgb("#858585");
+                //lbBookmark.TextColor = Color.FromArgb("#858585");
                 if (book != null)
                 {
                     noteContent.BookId = book.Id;
                 }
                 break;
             case "bookmark":
-                lbBookmark.TextColor = Color.FromArgb("#FFFFFF");
-                lbNote.TextColor = Color.FromArgb("#858585");
-                lbLibrary.TextColor = Color.FromArgb("#858585");
+                //lbBookmark.TextColor = Color.FromArgb("#FFFFFF");
+                //lbNote.TextColor = Color.FromArgb("#858585");
+                //lbLibrary.TextColor = Color.FromArgb("#858585");
                 if (book != null)
                 {
                     bookmarkContent.BookId = book.Id;
@@ -442,26 +442,24 @@ public partial class ViewBook : ContentPage
         string language = Preferences.Get(Const.appLanguagePreferenceKey, CultureInfo.CurrentUICulture.Name);
         bool isVietnamese = language.StartsWith(Const.VNlangprefix);
         bool isPortrait = !_isLandscape;
-#if WINDOWS
         if (isVietnamese)
         {
-            lbChatActivityTab.Margin = new Thickness(-12.5, 50, 0, 0);
-            lbBookmark.Margin = new Thickness(-9, 0, 0, 0);
-            lbLibrary.Margin = new Thickness(-5.45, 0, 0, 0);
-            lbNote.Margin = new Thickness(-3, 0, 0, 0);
+            //lbChatActivityTab.Margin = new Thickness(-12.5, 50, 0, 0);
+            //lbBookmark.Margin = new Thickness(-9, 0, 0, 0);
+            //lbLibrary.Margin = new Thickness(-5.45, 0, 0, 0);
+            //lbNote.Margin = new Thickness(-3, 0, 0, 0);
         }
         else
         {
-            lbChatActivityTab.Margin = new Thickness(7, 50, 0, 0);
-            lbLibrary.Margin = new Thickness(-2.5, 0, 0, 0);
-            lbNote.Margin = new Thickness(0.5, 0, 0, 0);
-            lbBookmark.Margin = new Thickness(-14.2, 0, 0, 0);
+            //lbChatActivityTab.Margin = new Thickness(7, 50, 0, 0);
+            //lbLibrary.Margin = new Thickness(-2.5, 0, 0, 0);
+            //lbNote.Margin = new Thickness(0.5, 0, 0, 0);
+            //lbBookmark.Margin = new Thickness(-14.2, 0, 0, 0);
         }
         if (isPortrait)
         {
-            lbChatActivityTab.Margin = new Thickness(0, 15, 0, 0);
+            //lbChatActivityTab.Margin = new Thickness(0, 15, 0, 0);
         }
-#endif
 
     }
 
@@ -474,7 +472,7 @@ public partial class ViewBook : ContentPage
         if (_savedChatHeight < MinChatSize) _savedChatHeight = 240;
 
         lbChatTitle.Text = AppResources.ChatPanel;
-        lbChatActivityTab.Text = AppResources.ChatPanel;
+        //lbChatActivityTab.Text = AppResources.ChatPanel;
 
         _isLandscape = xMain.Width > xMain.Height;
         ApplyOrientation();

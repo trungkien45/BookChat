@@ -21,8 +21,9 @@
                 </Border.GestureRecognizers>
 
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
-                <Grid WidthRequest="120" HeightRequest="120">
-                    <Label
+                <Grid WidthRequest="45" HeightRequest="120">
+                    <Image Source="vi_library_dark.png" WidthRequest="12" HeightRequest="60" Aspect="AspectFit" />
+                    <!--<Label
                         x:Name="lbLibrary" 
                         TextColor="#858585" 
                         FontSize="12" 
@@ -32,7 +33,7 @@
                         HorizontalTextAlignment="Center"
                         VerticalTextAlignment="Center"
                         InputTransparent="True"
-                        Rotation="-90" />
+                        Rotation="-90" />-->
                 </Grid>
             </Border>
             <!-- Nút Note -->
