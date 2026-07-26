@@ -27,6 +27,7 @@ namespace BookChat
             _storageService = storageService;
             _bookService = bookService;
             _dbSessionFactory = dbSessionFactory;
+            Loaded += OnLoad;
         }
 
         private async Task<StorageItem> CreateInitialStorageItem(string storedPath)
@@ -234,9 +235,14 @@ namespace BookChat
             catch { }
         }
 
-        protected override async void OnAppearing()
+        protected override void OnAppearing()
         {
             base.OnAppearing();
+            
+        }
+
+        protected async void OnLoad(object sender, EventArgs e)
+        {
             await LoadLibPathAsync();
         }
 
@@ -320,7 +326,11 @@ namespace BookChat
 
             // Initialize navigation state only here (root entry point)
             rootItem = initialItem;
-            currentItem = initialItem;
+            // if not set currentItem, set currentItem = initialItem 
+            if (currentItem == null)
+            {
+                currentItem = initialItem;
+            }
             navStack.Clear();
             if (rootItem != null)
             {

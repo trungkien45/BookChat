@@ -133,7 +133,7 @@ namespace BookChat.Resources
             get
             {
                 var name = CultureInfo.CurrentUICulture?.Name ?? Const.ENLang;
-                if (name.StartsWith(Const.VNlangprefix)) return vi;
+                if (name.StartsWith(Const.VNlangPrefix)) return vi;
                 return en;
             }
         }

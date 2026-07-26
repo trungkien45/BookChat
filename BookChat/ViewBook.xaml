@@ -22,7 +22,7 @@
 
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
                 <Grid WidthRequest="45" HeightRequest="120">
-                    <Image Source="vi_library_dark.png" WidthRequest="12" HeightRequest="60" Aspect="AspectFit" />
+                    <Image x:Name="imgLib" WidthRequest="45" HeightRequest="120" Aspect="AspectFit" />
                     <!--<Label
                         x:Name="lbLibrary" 
                         TextColor="#858585" 
@@ -42,17 +42,8 @@
                     <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="note"/>
                 </Border.GestureRecognizers>
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
-                <Grid WidthRequest="120" HeightRequest="120">
-                    <Label x:Name="lbNote" 
-                        TextColor="#858585" 
-                        FontSize="12" 
-                        VerticalOptions="Center"
-                        HorizontalOptions="Start"
-                        FontAttributes="Bold" 
-                        HorizontalTextAlignment="Center"
-                        VerticalTextAlignment="Center"
-                        InputTransparent="True"
-                        Rotation="-90" />
+                <Grid WidthRequest="45" HeightRequest="120">
+                    <Image x:Name="imgNote" WidthRequest="45" HeightRequest="120" Aspect="AspectFit" />
                 </Grid>
             </Border>
 
@@ -62,17 +53,8 @@
                     <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="bookmark"/>
                 </Border.GestureRecognizers>
                 <!-- Dùng Grid để giải phóng không gian cho Label -->
-                <Grid WidthRequest="120" HeightRequest="120">
-                    <Label x:Name="lbBookmark" 
-                        TextColor="#858585" 
-                        FontSize="12" 
-                        VerticalOptions="Center"
-                        HorizontalOptions="Start"
-                        FontAttributes="Bold" 
-                        HorizontalTextAlignment="Center"
-                        VerticalTextAlignment="Center"
-                        InputTransparent="True"
-                        Rotation="-90" />
+                <Grid WidthRequest="45" HeightRequest="120">
+                    <Image x:Name="imgBookmark" WidthRequest="45" HeightRequest="120" Aspect="AspectFit" />
                 </Grid>
             </Border>
 
@@ -182,19 +164,8 @@
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnChatActivityTapped"/>
                 </Border.GestureRecognizers>
-                <Grid WidthRequest="110" HeightRequest="110" HorizontalOptions="Center" VerticalOptions="Start">
-                    <Label x:Name="lbChatActivityTab"
-                           TextColor="#858585"
-                           FontSize="12"
-                           Margin="-10,0,0,0"
-                           VerticalOptions="Start"
-                           HorizontalOptions="Start"
-                           FontAttributes="Bold"
-                           HorizontalTextAlignment="Start"
-                           VerticalTextAlignment="Start"
-                           LineBreakMode="NoWrap"
-                           InputTransparent="True"
-                           Rotation="0" />
+                <Grid WidthRequest="45" x:Name="grdChat" HeightRequest="130">
+                    <Image x:Name="imgChat" WidthRequest="45" HeightRequest="130" Aspect="AspectFit" />
                 </Grid>
             </Border>
 
@@ -205,6 +176,7 @@
                   VerticalOptions="Fill">
                 <Grid.GestureRecognizers>
                     <PanGestureRecognizer PanUpdated="OnChatResizePanUpdated"/>
+                    <PointerGestureRecognizer PointerEntered="OnChatPointerEntered" PointerExited="OnChatPointerExited"/>
                 </Grid.GestureRecognizers>
                 <!-- Thin background line -->
                 <BoxView x:Name="ChatResizeLine"

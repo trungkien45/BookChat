@@ -13,6 +13,7 @@ public partial class ViewBook : ContentPage
 {
     private string base64String = string.Empty;
     private StorageItem _file;
+    string language = Preferences.Get(Const.appLanguagePreferenceKey, CultureInfo.CurrentUICulture.Name);
 
     public StorageItem File
     {
@@ -113,12 +114,16 @@ public partial class ViewBook : ContentPage
     }
     private async void ContentPage_Loaded(object sender, EventArgs e)
     {
-        //lbLibrary.Text = AppResources.Library;
-        //lbBookmark.Text = AppResources.Bookmarks;
-        //lbNote.Text = AppResources.Notes;
+        var langpreflix = language.Substring(0, Const.VNlangPrefix.Length);
 
         _isPinned = Preferences.Default.Get(Const.sidebarPinnedPreferenceKey, false);
         _savedWidth = Preferences.Default.Get(Const.sidebarWidthPreferenceKey, 250.0);
+
+        var color = _isPinned ? "light" : "dark";
+
+        imgLib.Source = $"{langpreflix}_library_{color}.png";
+        imgNote.Source = $"{langpreflix}_note_{color}.png";
+        imgBookmark.Source = $"{langpreflix}_bookmark_{color}.png";
         if (_savedWidth < MinSidebarWidth) _savedWidth = 250.0;
 
         UpdatePinButtonVisual();
@@ -234,7 +239,7 @@ public partial class ViewBook : ContentPage
         _autoHideCts = new CancellationTokenSource();
         var token = _autoHideCts.Token;
 
-        Task.Delay(400, token).ContinueWith(t =>
+        Task.Delay(1000, token).ContinueWith(t =>
         {
             if (!t.IsCanceled)
             {
@@ -260,48 +265,49 @@ public partial class ViewBook : ContentPage
     {
         xSideBarPanel.IsVisible = false;
         SidebarColumn.Width = 0;
-        //TODO using svg
+        var langpreflix = language.Substring(0, Const.VNlangPrefix.Length);
+
         switch (currentTab)
         {
             case "library":
-                //lbLibrary.TextColor = Color.FromArgb("#858585");
+                imgLib.Source = $"{langpreflix}_library_dark.png";
                 break;
             case "note":
-                //lbNote.TextColor = Color.FromArgb("#858585");
+                imgNote.Source = $"{langpreflix}_note_dark.png";
                 break;
             case "bookmark":
-                //lbBookmark.TextColor = Color.FromArgb("#858585");
+                imgBookmark.Source = $"{langpreflix}_bookmark_dark.png";
                 break;
             default:
                 break;
         }
     }
-
     private void ShowSidebar()
     {
         xSideBarPanel.IsVisible = true;
         SidebarColumn.Width = Math.Max(MinSidebarWidth, _savedWidth);
-        //TODO using svg
+        var langpreflix = language.Substring(0, Const.VNlangPrefix.Length);
+
         switch (currentTab)
         {
             case "library":
-                //lbLibrary.TextColor = Color.FromArgb("#FFFFFF");
-                //lbNote.TextColor = Color.FromArgb("#858585");
-                //lbBookmark.TextColor = Color.FromArgb("#858585");
+                imgLib.Source = $"{langpreflix}_library_light.png";
+                imgNote.Source = $"{langpreflix}_note_dark.png";
+                imgBookmark.Source = $"{langpreflix}_bookmark_dark.png";
                 break;
             case "note":
-                //lbNote.TextColor = Color.FromArgb("#FFFFFF");
-                //lbLibrary.TextColor = Color.FromArgb("#858585");
-                //lbBookmark.TextColor = Color.FromArgb("#858585");
+                imgNote.Source = $"{langpreflix}_note_light.png";
+                imgLib.Source = $"{langpreflix}_library_dark.png";
+                imgBookmark.Source = $"{langpreflix}_bookmark_dark.png";
                 if (book != null)
                 {
                     noteContent.BookId = book.Id;
                 }
                 break;
             case "bookmark":
-                //lbBookmark.TextColor = Color.FromArgb("#FFFFFF");
-                //lbNote.TextColor = Color.FromArgb("#858585");
-                //lbLibrary.TextColor = Color.FromArgb("#858585");
+                imgNote.Source = $"{langpreflix}_note_dark.png";
+                imgLib.Source = $"{langpreflix}_library_dark.png";
+                imgBookmark.Source = $"{langpreflix}_bookmark_light.png";
                 if (book != null)
                 {
                     bookmarkContent.BookId = book.Id;
@@ -358,11 +364,12 @@ public partial class ViewBook : ContentPage
     private const double MinChatSize = 10;
     private double _chatPanStartValue = 320;
     private bool _isLandscape = true;
+    private bool _isResizingChat = false;
     private CancellationTokenSource? _chatAutoHideCts;
 
     private void OnMainSizeChanged(object sender, EventArgs e)
     {
-        bool landscape = xMain.Width > xMain.Height;
+        bool landscape = this.Width > this.Height;
         if (landscape == _isLandscape) return;
         _isLandscape = landscape;
         ApplyOrientation();
@@ -370,9 +377,9 @@ public partial class ViewBook : ContentPage
 
     private void ApplyOrientation()
     {
-        bool chatVisible = xChatPanel.IsVisible;
+
+        bool isChatVisible = xChatPanel.IsVisible;
         double chatSize = _isLandscape ? _savedChatWidth : _savedChatHeight;
-        UpdateSideBarTabLabelMargins();
         if (_isLandscape)
         {
             // Landscape: Col0=DocPanel(*) | Col1=ChatActivityBar(45) | Col2=ResizeHandle(20) | Col3=ChatPanel
@@ -380,8 +387,8 @@ public partial class ViewBook : ContentPage
             xMain.ColumnDefinitions.Clear();
             xMain.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));        // 0: DocPanel
             xMain.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(45)));     // 1: ChatActivityBar
-            xMain.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(chatVisible ? 20 : 0))); // 2: ResizeHandle
-            xMain.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(chatVisible ? chatSize : 0))); // 3: ChatPanel
+            xMain.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(isChatVisible ? 20 : 0))); // 2: ResizeHandle
+            xMain.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(isChatVisible ? chatSize : 0))); // 3: ChatPanel
 
             Grid.SetRow(xDocumentPanel, 0); Grid.SetColumn(xDocumentPanel, 0); Grid.SetRowSpan(xDocumentPanel, 1); Grid.SetColumnSpan(xDocumentPanel, 1);
             Grid.SetRow(ChatActivityBar, 0); Grid.SetColumn(ChatActivityBar, 1);
@@ -393,7 +400,11 @@ public partial class ViewBook : ContentPage
             ChatActivityBar.HeightRequest = -1;
             ChatActivityBar.VerticalOptions = LayoutOptions.Start;
             ChatActivityBar.HorizontalOptions = LayoutOptions.Center;
-            lbChatActivityTab.Rotation = -90;
+
+            grdChat.HeightRequest = 130;
+            grdChat.WidthRequest = 45;
+            imgChat.HeightRequest = 130;
+            imgChat.WidthRequest = 45;
             // Resize handle grip: vertical bar ↔
             ChatResizeHandle.WidthRequest = 20;
             ChatResizeHandle.HeightRequest = -1;
@@ -408,8 +419,8 @@ public partial class ViewBook : ContentPage
             xMain.RowDefinitions.Clear();
             xMain.RowDefinitions.Add(new RowDefinition(GridLength.Star));                                  // 0: DocPanel
             xMain.RowDefinitions.Add(new RowDefinition(new GridLength(45)));                               // 1: ChatActivityBar
-            xMain.RowDefinitions.Add(new RowDefinition(new GridLength(chatVisible ? 20 : 0)));             // 2: ResizeHandle
-            xMain.RowDefinitions.Add(new RowDefinition(new GridLength(chatVisible ? chatSize : 0)));       // 3: ChatPanel
+            xMain.RowDefinitions.Add(new RowDefinition(new GridLength(isChatVisible ? 20 : 0)));             // 2: ResizeHandle
+            xMain.RowDefinitions.Add(new RowDefinition(new GridLength(isChatVisible ? chatSize : 0)));       // 3: ChatPanel
 
             Grid.SetColumn(xDocumentPanel, 0); Grid.SetRow(xDocumentPanel, 0); Grid.SetRowSpan(xDocumentPanel, 1); Grid.SetColumnSpan(xDocumentPanel, 1);
             Grid.SetColumn(ChatActivityBar, 0); Grid.SetRow(ChatActivityBar, 1);
@@ -421,7 +432,11 @@ public partial class ViewBook : ContentPage
             ChatActivityBar.WidthRequest = -1;
             ChatActivityBar.VerticalOptions = LayoutOptions.Center;
             ChatActivityBar.HorizontalOptions = LayoutOptions.Start;
-            lbChatActivityTab.Rotation = 0;
+
+            grdChat.HeightRequest = 45;
+            grdChat.WidthRequest = 130;
+            imgChat.HeightRequest = 45;
+            imgChat.WidthRequest = 130;
             // Resize handle grip: horizontal bar ↕
             ChatResizeHandle.HeightRequest = 20;
             ChatResizeHandle.WidthRequest = -1;
@@ -430,37 +445,19 @@ public partial class ViewBook : ContentPage
             lbChatResizeArrow.Text = "↕";
         }
 
-        ChatResizeHandle.IsVisible = chatVisible;
-
+        ChatResizeHandle.IsVisible = isChatVisible;
+        UpdateChatLabel(isChatVisible);
 #if WINDOWS
         SetChatCursorForHandle();
 #endif
     }
-    //TODO using svg
-    private void UpdateSideBarTabLabelMargins()
-    {
-        string language = Preferences.Get(Const.appLanguagePreferenceKey, CultureInfo.CurrentUICulture.Name);
-        bool isVietnamese = language.StartsWith(Const.VNlangprefix);
-        bool isPortrait = !_isLandscape;
-        if (isVietnamese)
-        {
-            //lbChatActivityTab.Margin = new Thickness(-12.5, 50, 0, 0);
-            //lbBookmark.Margin = new Thickness(-9, 0, 0, 0);
-            //lbLibrary.Margin = new Thickness(-5.45, 0, 0, 0);
-            //lbNote.Margin = new Thickness(-3, 0, 0, 0);
-        }
-        else
-        {
-            //lbChatActivityTab.Margin = new Thickness(7, 50, 0, 0);
-            //lbLibrary.Margin = new Thickness(-2.5, 0, 0, 0);
-            //lbNote.Margin = new Thickness(0.5, 0, 0, 0);
-            //lbBookmark.Margin = new Thickness(-14.2, 0, 0, 0);
-        }
-        if (isPortrait)
-        {
-            //lbChatActivityTab.Margin = new Thickness(0, 15, 0, 0);
-        }
 
+    private void UpdateChatLabel(bool isChatVisible)
+    {
+        var langPrefix = language.Substring(0, Const.VNlangPrefix.Length);
+        var imgdirection = _isLandscape ? "vertical" : "horizontal";
+        var color = isChatVisible ? "light" : "dark";
+        imgChat.Source = $"{langPrefix}_chat_{imgdirection}_{color}.png";
     }
 
     private void SetupChatPanel()
@@ -474,11 +471,10 @@ public partial class ViewBook : ContentPage
         lbChatTitle.Text = AppResources.ChatPanel;
         //lbChatActivityTab.Text = AppResources.ChatPanel;
 
-        _isLandscape = xMain.Width > xMain.Height;
+        _isLandscape = Width > Height;
         ApplyOrientation();
         UpdateChatPinVisual();
     }
-    //TODO using svg
     private void UpdateChatPinVisual()
     {
         if (_isChatPinned)
@@ -514,16 +510,9 @@ public partial class ViewBook : ContentPage
         {
             ShowChatPanel();
         }
-        UpdateChatActivityBarHighlight();
+        UpdateChatLabel(xChatPanel.IsVisible);
     }
 
-    private void UpdateChatActivityBarHighlight()
-    {
-        lbChatActivityTab.TextColor = xChatPanel.IsVisible
-            ? Color.FromArgb("#FFFFFF")
-            : Color.FromArgb("#858585");
-    }
-    //TODO using svg
     private void ShowChatPanel()
     {
         xChatPanel.IsVisible = true;
@@ -542,7 +531,7 @@ public partial class ViewBook : ContentPage
             xMain.RowDefinitions[2] = new RowDefinition(new GridLength(20));
             xMain.RowDefinitions[3] = new RowDefinition(new GridLength(size));
         }
-        UpdateChatActivityBarHighlight();
+        UpdateChatLabel(xChatPanel.IsVisible);
         ChatPanelContent.Content = chatContent;
     }
 
@@ -561,7 +550,7 @@ public partial class ViewBook : ContentPage
             xMain.RowDefinitions[2] = new RowDefinition(new GridLength(0));
             xMain.RowDefinitions[3] = new RowDefinition(new GridLength(0));
         }
-        UpdateChatActivityBarHighlight();
+        UpdateChatLabel(xChatPanel.IsVisible);
     }
 
     private void OnChatResizePanUpdated(object? sender, PanUpdatedEventArgs e)
@@ -569,6 +558,10 @@ public partial class ViewBook : ContentPage
         switch (e.StatusType)
         {
             case GestureStatus.Started:
+                _isResizingChat = true;
+                _chatAutoHideCts?.Cancel();
+                _chatAutoHideCts?.Dispose();
+                _chatAutoHideCts = null;
                 _chatPanStartValue = _isLandscape ? _savedChatWidth : _savedChatHeight;
                 break;
 
@@ -592,6 +585,7 @@ public partial class ViewBook : ContentPage
 
             case GestureStatus.Completed:
             case GestureStatus.Canceled:
+                _isResizingChat = false;
                 if (_isLandscape)
                     Preferences.Default.Set(Const.chatWidthPreferenceKey, _savedChatWidth);
                 else
@@ -609,16 +603,17 @@ public partial class ViewBook : ContentPage
 
     private void OnChatPointerExited(object? sender, PointerEventArgs e)
     {
-        if (!_isChatPinned && xChatPanel.IsVisible)
+
+        if (!_isChatPinned && !_isResizingChat && xChatPanel.IsVisible)
         {
             _chatAutoHideCts = new CancellationTokenSource();
             var token = _chatAutoHideCts.Token;
-            Task.Delay(400, token).ContinueWith(t =>
+            Task.Delay(1000, token).ContinueWith(t =>
             {
                 if (!t.IsCanceled)
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        if (!_isChatPinned) HideChatPanel();
+                        if (!_isChatPinned && !_isResizingChat) HideChatPanel();
                     });
             });
         }
