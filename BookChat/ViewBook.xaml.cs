@@ -21,47 +21,64 @@ public partial class ViewBook : ContentPage
         set
         {
             _file = value;
+            if (libraryContent != null)
+            {
+                libraryContent.StorageItem = value;
+            }
             LoadPdf();
         }
     }
     private Book? book = null;
     private readonly IBookService bookService;
-    private void LoadPdf()
+    private async void LoadPdf()
     {
+        LoadingOverlay.IsVisible = true;
+        bool loaded = false;
+        try
+        {
 #if ANDROID
-        var uri = Android.Net.Uri.Parse(_file.Id);
-        if (uri == null)
-        {
-            Task.Run(async () => await DisplayAlertAsync(AppResources.TitleError, AppResources.OpenPDFError, AppResources.Ok)).Wait();
-            return;
-        }
-        using var stream = Android.App.Application.Context
-            .ContentResolver!
-            .OpenInputStream(uri);
-        if (stream == null)
-        {
-            Task.Run(async () => await DisplayAlertAsync(AppResources.TitleError, AppResources.OpenPDFError, AppResources.Ok)).Wait();
-            return;
-        }
-        Task.Run(async () =>
-        {
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var pdfBytes = ms.ToArray();
-            LoadPdfFromByteArray(PdfViewer, pdfBytes);
+            var uri = Android.Net.Uri.Parse(_file.Id);
+            if (uri == null)
+            {
+                await DisplayAlertAsync(AppResources.TitleError, AppResources.OpenPDFError, AppResources.Ok);
+                return;
+            }
+            string? base64Str = await Task.Run(async () =>
+            {
+                using var stream = Android.App.Application.Context.ContentResolver!.OpenInputStream(uri);
+                if (stream == null) return null;
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                return Convert.ToBase64String(ms.ToArray()).Replace("\r", "").Replace("\n", "");
+            });
+            if (base64Str == null)
+            {
+                await DisplayAlertAsync(AppResources.TitleError, AppResources.OpenPDFError, AppResources.Ok);
+                return;
+            }
+            LoadPdfFromBase64String(base64Str);
+            loaded = true;
             book = await bookService.GetBookByPathAsync(_file.Id);
-        }).Wait();
 #elif WINDOWS
-        Task.Run(async () =>
-        {
-            using var stream = new FileStream(_file.Id, FileMode.Open);
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var pdfBytes = ms.ToArray();
-            LoadPdfFromByteArray(PdfViewer, pdfBytes);
+            string base64Str = await Task.Run(async () =>
+            {
+                using var stream = new FileStream(_file.Id, FileMode.Open);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                return Convert.ToBase64String(ms.ToArray()).Replace("\r", "").Replace("\n", "");
+            });
+            LoadPdfFromBase64String(base64Str);
+            loaded = true;
             book = await bookService.GetBookByPathAsync(_file.Id);
-        }).Wait();
 #endif
+        }
+        finally
+        {
+            if (!loaded)
+            {
+                LoadingOverlay.IsVisible = false;
+            }
+        }
     }
     LibraryContent libraryContent;
     NoteContent noteContent;
@@ -83,15 +100,18 @@ public partial class ViewBook : ContentPage
 #endif
         this.bookService = bookService;
         this.libraryContent = libraryContent;
+        this.libraryContent.FileSelected += (s, item) => 
+        {
+            File = item;
+        };
         this.noteContent = noteContent;
         this.bookmarkContent = bookmarkContent;
         this.chatContent = chatContent;
 
     }
-    public void LoadPdfFromByteArray(WebView myWebView, byte[] pdfBytes)
+    public void LoadPdfFromBase64String(string base64Str)
     {
-        // Convert the byte array into a clean Base64 string
-        base64String = Convert.ToBase64String(pdfBytes).Replace("\r", "").Replace("\n", "");
+        base64String = base64Str;
 #if ANDROID 
         PdfViewer.Source = "file:///android_asset/pdfjs/web/viewer.html";
 #elif IOS
@@ -106,12 +126,32 @@ public partial class ViewBook : ContentPage
     }
     async void OnNavigated(object? s, WebNavigatedEventArgs e)
     {
-        if (e.Result == WebNavigationResult.Success)
+        try
         {
-            // Execute a script to send the binary data to the viewer via the secure postMessage function
-            await PdfViewer.EvaluateJavaScriptAsync($"window.loadPdf('{base64String}')");
+            if (e.Result == WebNavigationResult.Success)
+            {
+                // Execute a script to send the binary data to the viewer via the secure postMessage function
+                await PdfViewer.EvaluateJavaScriptAsync($"window.loadPdf('{base64String}')");
+                // Cho 2 hàm chạy cùng một lúc và chờ cả 2 hoàn thành
+                await Task.WhenAll(LoadNote(), LoadBookmark());
+            }
+        }
+        finally
+        {
+            LoadingOverlay.IsVisible = false;
         }
     }
+
+    private async Task LoadBookmark()
+    {
+        bookmarkContent.BookId = book!.Id;
+    }
+
+    private async Task LoadNote()
+    {
+        noteContent.BookId = book!.Id;
+    }
+
     private async void ContentPage_Loaded(object sender, EventArgs e)
     {
         var langpreflix = language.Substring(0, Const.VNlangPrefix.Length);
@@ -299,19 +339,11 @@ public partial class ViewBook : ContentPage
                 imgNote.Source = $"{langpreflix}_note_light.png";
                 imgLib.Source = $"{langpreflix}_library_dark.png";
                 imgBookmark.Source = $"{langpreflix}_bookmark_dark.png";
-                if (book != null)
-                {
-                    noteContent.BookId = book.Id;
-                }
                 break;
             case "bookmark":
                 imgNote.Source = $"{langpreflix}_note_dark.png";
                 imgLib.Source = $"{langpreflix}_library_dark.png";
                 imgBookmark.Source = $"{langpreflix}_bookmark_light.png";
-                if (book != null)
-                {
-                    bookmarkContent.BookId = book.Id;
-                }
                 break;
             default:
                 break;

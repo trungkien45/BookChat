@@ -42,7 +42,10 @@ public partial class LibraryContent : ContentView
             if (currentRequest != requestId)
                 return;
 
-            StorageItems.ReplaceWith(result);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                StorageItems.ReplaceWith(result);
+            });
         }
         catch (Exception ex)
         {
@@ -60,4 +63,14 @@ public partial class LibraryContent : ContentView
         InitializeComponent();
     }
 
+    public event EventHandler<StorageItem>? FileSelected;
+
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is StorageItem selectedItem)
+        {
+            FileSelected?.Invoke(this, selectedItem);
+            ((CollectionView)sender).SelectedItem = null;
+        }
+    }
 }

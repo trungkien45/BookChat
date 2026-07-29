@@ -64,7 +64,8 @@ namespace BookChat.Resources
             { "PinSidebar", "Pin sidebar" },
             { "ChatPanel", "Chat" },
             { "UnpinChat", "Unpin (Auto-hide)" },
-            { "PinChat", "Pin chat" }
+            { "PinChat", "Pin chat" },
+            { "LoadingPDF", "Loading PDF..." }
         };
 
         static readonly Dictionary<string, string> vi = new()
@@ -125,7 +126,8 @@ namespace BookChat.Resources
             { "PinSidebar", "Ghim thanh bên" },
             { "ChatPanel", "Trò chuyện" },
             { "UnpinChat", "Bỏ ghim (tự động ẩn)" },
-            { "PinChat", "Ghim khung chat" }
+            { "PinChat", "Ghim khung chat" },
+            { "LoadingPDF", "Đang tải PDF..." }
         };
 
         static Dictionary<string, string> CurrentDict
@@ -203,6 +205,8 @@ namespace BookChat.Resources
         public static string UnpinChat => Get("UnpinChat");
 
         public static string PinChat => Get("PinChat");
+
+        public static string LoadingPDF => Get("LoadingPDF");
 
         static string Get(string key)
         {

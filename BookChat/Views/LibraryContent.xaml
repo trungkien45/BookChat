@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="BookChat.Views.LibraryContent">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to Library!"
-            TextColor="White"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             xmlns:models="clr-namespace:BookChat.Models"
+             x:Class="BookChat.Views.LibraryContent"
+             x:Name="thisControl">
+    <Grid>
+        <CollectionView ItemsSource="{Binding Source={x:Reference thisControl}, Path=StorageItems}"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelectionChanged">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:StorageItem">
+                    <Grid Padding="10, 8">
+                        <Label Text="{Binding DisplayName}" TextColor="White" VerticalOptions="Center" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 </ContentView>

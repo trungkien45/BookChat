@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:res="clr-namespace:BookChat.Resources"
              x:Class="BookChat.ViewBook"
              Title="ViewBook"
              Loaded="ContentPage_Loaded">
@@ -237,6 +238,22 @@
                     <ContentView x:Name="ChatPanelContent" Grid.Row="1"/>
                 </Grid>
             </Grid>
+        </Grid>
+
+        <!-- LOADING OVERLAY -->
+        <Grid x:Name="LoadingOverlay" Grid.ColumnSpan="3" BackgroundColor="#80000000" IsVisible="False" InputTransparent="False">
+            <Border HorizontalOptions="Center" 
+                    VerticalOptions="Center" 
+                    BackgroundColor="#2d2d2d" 
+                    StrokeShape="RoundRectangle 12" 
+                    Padding="40,30"
+                    Stroke="#555555"
+                    StrokeThickness="1">
+                <StackLayout Spacing="20">
+                    <ActivityIndicator IsRunning="{Binding Source={x:Reference LoadingOverlay}, Path=IsVisible}" Color="#4EC9B0" WidthRequest="50" HeightRequest="50" />
+                    <Label Text="{x:Static res:AppResources.LoadingPDF}" TextColor="White" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
+                </StackLayout>
+            </Border>
         </Grid>
 
     </Grid>
