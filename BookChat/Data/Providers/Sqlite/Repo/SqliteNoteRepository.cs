@@ -30,7 +30,7 @@ namespace BookChat.Data.Providers.Sqlite.Repo
 
         public async Task<List<Note>> GetNotesByBookIdAsync(int bookId)
         {
-            return await conn.QueryAsync<Note>("SELECT Id, BookId, PageNumber, Content FROM Note WHERE BookId = ?", bookId);
+            return await conn.QueryAsync<Note>("SELECT Id, BookId, PageNumber, Content FROM Note WHERE BookId = ? ORDER By PageNumber", bookId);
         }
 
         public async Task<int> InsertNoteAsync(Note note)

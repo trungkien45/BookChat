@@ -30,7 +30,7 @@ namespace BookChat.Data.Providers.Sqlite.Repo
 
         public async Task<List<Bookmark>> GetBookmarksByBookIdAsync(int bookId)
         {
-            return await conn.QueryAsync<Bookmark>("SELECT Id, BookId, PageNumber, Name FROM Bookmark WHERE BookId = ?", bookId);
+            return await conn.QueryAsync<Bookmark>("SELECT Id, BookId, PageNumber, Name FROM Bookmark WHERE BookId = ? ORDER BY PageNumber", bookId);
         }
 
         public async Task<int> InsertBookmarkAsync(Bookmark bookmark)

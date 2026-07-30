@@ -65,7 +65,15 @@ namespace BookChat.Resources
             { "ChatPanel", "Chat" },
             { "UnpinChat", "Unpin (Auto-hide)" },
             { "PinChat", "Pin chat" },
-            { "LoadingPDF", "Loading PDF..." }
+            { "LoadingPDF", "Loading PDF..." },
+            { "BookmarkListTitle", "Bookmarks List" },
+            { "AddButton", "+ Add" },
+            { "NoBookmarksYet", "No bookmarks yet" },
+            { "NoBookmarksDetail", "Click '+ Add' above to bookmark the current page." },
+            { "EditBookmark", "Edit bookmark" },
+            { "DeleteBookmark", "Delete bookmark" },
+            { "PageFormat", "Page {0}" },
+            { "Edit", "Edit" }
         };
 
         static readonly Dictionary<string, string> vi = new()
@@ -127,7 +135,15 @@ namespace BookChat.Resources
             { "ChatPanel", "Trò chuyện" },
             { "UnpinChat", "Bỏ ghim (tự động ẩn)" },
             { "PinChat", "Ghim khung chat" },
-            { "LoadingPDF", "Đang tải PDF..." }
+            { "LoadingPDF", "Đang tải PDF..." },
+            { "BookmarkListTitle", "Danh sách dấu trang" },
+            { "AddButton", "+ Thêm" },
+            { "NoBookmarksYet", "Chưa có dấu trang nào" },
+            { "NoBookmarksDetail", "Nhấn nút '+ Thêm' phía trên để tạo dấu trang cho trang hiện tại." },
+            { "EditBookmark", "Sửa dấu trang" },
+            { "DeleteBookmark", "Xóa dấu trang" },
+            { "PageFormat", "Trang {0}" },
+            { "Edit", "Sửa" }
         };
 
         static Dictionary<string, string> CurrentDict
@@ -207,6 +223,22 @@ namespace BookChat.Resources
         public static string PinChat => Get("PinChat");
 
         public static string LoadingPDF => Get("LoadingPDF");
+
+        public static string BookmarkListTitle => Get("BookmarkListTitle");
+
+        public static string AddButton => Get("AddButton");
+
+        public static string NoBookmarksYet => Get("NoBookmarksYet");
+
+        public static string NoBookmarksDetail => Get("NoBookmarksDetail");
+
+        public static string EditBookmark => Get("EditBookmark");
+
+        public static string DeleteBookmark => Get("DeleteBookmark");
+
+        public static string PageFormat => Get("PageFormat");
+
+        public static string Edit => Get("Edit");
 
         static string Get(string key)
         {

@@ -1,12 +1,158 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="BookChat.Views.BookmarkContent">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to Bookmark"
-            TextColor="White"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             xmlns:models="clr-namespace:BookChat.Models"
+             xmlns:res="clr-namespace:BookChat.Resources"
+             x:Class="BookChat.Views.BookmarkContent"
+             x:Name="thisControl">
+
+    <Grid RowDefinitions="Auto, *">
+        
+        <!-- Header Bar with Title & Add Button -->
+        <Grid Grid.Row="0" 
+              ColumnDefinitions="*, Auto" 
+              Padding="12, 10" 
+              BackgroundColor="#2D2D30">
+            
+            <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                <Label Text="🔖" FontSize="16" VerticalOptions="Center"/>
+                <Label Text="{x:Static res:AppResources.BookmarkListTitle}" 
+                       TextColor="#E1E1E1" 
+                       FontAttributes="Bold" 
+                       FontSize="14" 
+                       VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <!-- Add Bookmark Button -->
+            <Button x:Name="BtnAddBookmark"
+                    Grid.Column="1"
+                    Text="{x:Static res:AppResources.AddButton}"
+                    FontSize="12"
+                    FontAttributes="Bold"
+                    TextColor="White"
+                    BackgroundColor="#512BD4"
+                    CornerRadius="6"
+                    HeightRequest="32"
+                    Padding="12,0"
+                    Clicked="OnAddBookmarkClicked"/>
+        </Grid>
+
+        <!-- Bookmarks List -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Bookmarks}"
+                        SelectionMode="None">
+
+            <!-- Empty State View -->
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" 
+                                     HorizontalOptions="Center" 
+                                     Spacing="12" 
+                                     Padding="20">
+                    <Label Text="🔖" 
+                           FontSize="40" 
+                           HorizontalOptions="Center" 
+                           Opacity="0.6" />
+                    <Label Text="{x:Static res:AppResources.NoBookmarksYet}" 
+                           TextColor="#ACACAC" 
+                           FontSize="14" 
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <Label Text="{x:Static res:AppResources.NoBookmarksDetail}" 
+                           TextColor="#6E6E6E" 
+                           FontSize="12" 
+                           HorizontalTextAlignment="Center"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <!-- Bookmark Item Template -->
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Bookmark">
+                    <SwipeView Margin="0, 4">
+                        <!-- Right Swipe Actions for Touch/Mobile -->
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem x:Name="SwipeEdit"
+                                           Text="{x:Static res:AppResources.Edit}" 
+                                           BackgroundColor="#512BD4" 
+                                           IconImageSource="{FontImageSource Glyph='✏️', Color=White, Size=16}"
+                                           Invoked="OnEditBookmarkClicked"/>
+                                <SwipeItem x:Name="SwipeDelete"
+                                           Text="{x:Static res:AppResources.MenuDelete}" 
+                                           BackgroundColor="#E53935" 
+                                           IconImageSource="{FontImageSource Glyph='🗑️', Color=White, Size=16}"
+                                           Invoked="OnDeleteBookmarkClicked"/>
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="#33FFFFFF"
+                                StrokeThickness="1"
+                                BackgroundColor="#252526"
+                                Padding="10, 8">
+
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnBookmarkItemTapped"/>
+                            </Border.GestureRecognizers>
+
+                            <!-- Context Menu for Mouse Right-Click / Long-Press -->
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem x:Name="MfiEdit"
+                                                    Text="{x:Static res:AppResources.EditBookmark}"
+                                                    Clicked="OnEditBookmarkClicked"/>
+                                    <MenuFlyoutItem x:Name="MfiDelete"
+                                                    Text="{x:Static res:AppResources.DeleteBookmark}"
+                                                    Clicked="OnDeleteBookmarkClicked"/>
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+
+                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10" VerticalOptions="Center">
+
+                                <!-- Prominent Page Number Badge -->
+                                <Border Grid.Column="0"
+                                        StrokeShape="RoundRectangle 6"
+                                        BackgroundColor="#3E2723"
+                                        Stroke="#FFAB91"
+                                        StrokeThickness="1"
+                                        Padding="8, 4"
+                                        VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                        <Label Text="📄" FontSize="11" VerticalOptions="Center"/>
+                                        <Label Text="{Binding PageNumber, StringFormat={x:Static res:AppResources.PageFormat}}" 
+                                               TextColor="#FFAB91" 
+                                               FontAttributes="Bold" 
+                                               FontSize="12" 
+                                               VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Bookmark Name / Title -->
+                                <Label Grid.Column="1"
+                                       Text="{Binding Name}"
+                                       TextColor="White"
+                                       FontSize="13"
+                                       LineBreakMode="TailTruncation"
+                                       VerticalOptions="Center"/>
+
+                                <!-- Context Menu Indicator Button -->
+                                <Label Grid.Column="2"
+                                       Text="⋮"
+                                       TextColor="#ACACAC"
+                                       FontSize="16"
+                                       WidthRequest="28"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalOptions="Center">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnBookmarkOptionsClicked"/>
+                                    </Label.GestureRecognizers>
+                                </Label>
+                            </Grid>
+                        </Border>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+    </Grid>
 </ContentView>
