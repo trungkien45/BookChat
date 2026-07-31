@@ -20749,12 +20749,27 @@ if (document.readyState === "interactive" || document.readyState === "complete")
 export { PDFViewerApplication, AppConstants as PDFViewerApplicationConstants, AppOptions as PDFViewerApplicationOptions };
 
 //# sourceMappingURL=viewer.mjs.map
-// Thêm đoạn này vào cuối file Resources\Raw\pdfjs\web\viewer.js
+// Thêm đoạn này vào cuối file Resources\Raw\pdfjs\web\viewer.mjs
+// Keep track of the resolved result globally
+window.pdfPageInfo = { currentPage: 0, totalPages: 0 };
+window.pdfLoaded = false;
 globalThis.loadPdf = async function(base64) {
+	window.pdfLoaded = false;
+    window.pdfInfo = null;
     console.log("loadPdf called");
 
     const binary = atob(base64);
     const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
 
     await PDFViewerApplication.open({ data: bytes });
+    await PDFViewerApplication.pdfDocument?.getMetadata();
+    await PDFViewerApplication.pdfLoadingTask.promise;
+
+	window.pdfLoaded = true;
+
+	window.pdfInfo = {
+		currentPage: PDFViewerApplication.page,
+		totalPages: PDFViewerApplication.pagesCount
+	};
+    console.log("PDF finished loading.");
 };

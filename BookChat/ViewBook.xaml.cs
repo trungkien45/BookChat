@@ -3,8 +3,11 @@ using BookChat.Models;
 using BookChat.Resources;
 using BookChat.StorageService;
 using BookChat.Views;
+using SQLitePCL;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.Json;
+using static Android.Icu.Text.IDNA;
 
 namespace BookChat;
 
@@ -130,8 +133,27 @@ public partial class ViewBook : ContentPage
         {
             if (e.Result == WebNavigationResult.Success)
             {
-                // Execute a script to send the binary data to the viewer via the secure postMessage function
                 await PdfViewer.EvaluateJavaScriptAsync($"window.loadPdf('{base64String}')");
+                const int timeout = 10000;
+                var sw = Stopwatch.StartNew();
+
+                while (sw.ElapsedMilliseconds < timeout)
+                {
+                    var loaded = await PdfViewer.EvaluateJavaScriptAsync("window.pdfLoaded");
+
+                    if (loaded == "true")
+                        break;
+
+                    await Task.Delay(50);
+                }
+
+                if (sw.ElapsedMilliseconds >= timeout)
+                    throw new TimeoutException("PDF loading timeout.");
+
+                string info = await PdfViewer.EvaluateJavaScriptAsync(
+                    "JSON.stringify(window.pdfInfo)");
+                var json = info.Replace("\\\"", "\"").Trim('"');
+                //var json = JsonSerializer.Deserialize<string>(info);
                 // Cho 2 hàm chạy cùng một lúc và chờ cả 2 hoàn thành
                 await Task.WhenAll(LoadNote(), LoadBookmark());
             }
@@ -351,7 +373,7 @@ public partial class ViewBook : ContentPage
 
     }
 
-    private void OnTabTapped(object sender, TappedEventArgs e)
+    private async void OnTabTapped(object sender, TappedEventArgs e)
     {
         if (e.Parameter == null) return;
         string targetTab = (e.Parameter ?? string.Empty).ToString()!;
@@ -406,7 +428,6 @@ public partial class ViewBook : ContentPage
         _isLandscape = landscape;
         ApplyOrientation();
     }
-
     private void ApplyOrientation()
     {
 
@@ -650,6 +671,35 @@ public partial class ViewBook : ContentPage
             });
         }
     }
+    public async Task<(int Current, int Total)> GetPdfPageInfoAsync()
+    {
+        string script = "JSON.stringify({ current: PDFViewerApplication.page, total: PDFViewerApplication.pagesCount })";
+        string jsonResult = await PdfViewer.EvaluateJavaScriptAsync(script);
+
+        if (!string.IsNullOrEmpty(jsonResult) && jsonResult != "null" && jsonResult != "{}")
+        {
+            var json = jsonResult.Replace("\\\"", "\"").Trim('"');
+            using var doc = System.Text.Json.JsonDocument.Parse(jsonResult);
+            int current = doc.RootElement.GetProperty("current").GetInt32();
+            int total = doc.RootElement.GetProperty("total").GetInt32();
+            return (current, total);
+        }
+
+        return (0, 0);
+    }
+    public async Task GoToPageAsync(int pageNumber)
+    {
+        try
+        {
+            // Thực thi mã JavaScript để thay đổi trang hiện tại
+            await PdfViewer.EvaluateJavaScriptAsync($"PDFViewerApplication.page = {pageNumber};");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Lỗi khi chuyển trang: {ex.Message}");
+        }
+    }
+
 
 #if WINDOWS
     private void SetChatCursorForHandle()
