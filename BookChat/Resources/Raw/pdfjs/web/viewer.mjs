@@ -550,7 +550,7 @@ const defaultOptions = {
   },
   localeProperties: {
     value: {
-      lang: navigator.language || "en-US"
+        lang: new URLSearchParams(window.location.search).get("locale") || navigator.language || "en-US" 
     },
     kind: OptionKind.BROWSER
   },

@@ -3,11 +3,8 @@ using BookChat.Models;
 using BookChat.Resources;
 using BookChat.StorageService;
 using BookChat.Views;
-using SQLitePCL;
 using System.Diagnostics;
 using System.Globalization;
-using System.Text.Json;
-using static Android.Icu.Text.IDNA;
 
 namespace BookChat;
 
@@ -24,14 +21,11 @@ public partial class ViewBook : ContentPage
         set
         {
             _file = value;
-            if (libraryContent != null)
-            {
-                libraryContent.StorageItem = value;
-            }
+            libraryContent?.StorageItem = value;
             LoadPdf();
         }
     }
-    private Book? book = null;
+    private readonly Book? book = null;
     private readonly IBookService bookService;
     private async void LoadPdf()
     {
@@ -83,10 +77,10 @@ public partial class ViewBook : ContentPage
             }
         }
     }
-    LibraryContent libraryContent;
-    NoteContent noteContent;
-    BookmarkContent bookmarkContent;
-    ChatContent chatContent;
+    readonly LibraryContent libraryContent;
+    readonly NoteContent noteContent;
+    readonly BookmarkContent bookmarkContent;
+    readonly ChatContent chatContent;
     public ViewBook(IBookService bookService, LibraryContent libraryContent, NoteContent noteContent, BookmarkContent bookmarkContent, ChatContent chatContent)
     {
         _file = new StorageItem();
@@ -114,13 +108,17 @@ public partial class ViewBook : ContentPage
     }
     public void LoadPdfFromBase64String(string base64Str)
     {
+        if(language == "vi-VN")
+        {
+            language = "vi";
+        }
         base64String = base64Str;
 #if ANDROID 
-        PdfViewer.Source = "file:///android_asset/pdfjs/web/viewer.html";
+        PdfViewer.Source = $"file:///android_asset/pdfjs/web/viewer.html?locale={language}";
 #elif IOS
-        PdfViewer.Source = "pdfjs/web/viewer.html"; // iOS automatically maps Resources/Raw to the app root
+        PdfViewer.Source = $"pdfjs/web/viewer.html?locale={language}"; // iOS automatically maps Resources/Raw to the app root
 #elif WINDOWS
-        PdfViewer.Source = "pdfjs/web/viewer.html";
+        PdfViewer.Source = $"pdfjs/web/viewer.html?locale={language}";
 #endif
 
         // Wait for the WebView to finish loading the PDF.js UI frame, then push the in-memory data
@@ -150,9 +148,9 @@ public partial class ViewBook : ContentPage
                 if (sw.ElapsedMilliseconds >= timeout)
                     throw new TimeoutException("PDF loading timeout.");
 
-                string info = await PdfViewer.EvaluateJavaScriptAsync(
+                await PdfViewer.EvaluateJavaScriptAsync(
                     "JSON.stringify(window.pdfInfo)");
-                var json = info.Replace("\\\"", "\"").Trim('"');
+                //var json = info.Replace("\\\"", "\"").Trim('"');
                 //var json = JsonSerializer.Deserialize<string>(info);
                 // Cho 2 hàm chạy cùng một lúc và chờ cả 2 hoàn thành
                 await Task.WhenAll(LoadNote(), LoadBookmark());
@@ -176,7 +174,7 @@ public partial class ViewBook : ContentPage
 
     private async void ContentPage_Loaded(object sender, EventArgs e)
     {
-        var langpreflix = language.Substring(0, Const.VNlangPrefix.Length);
+        var langpreflix = language[..Const.VNlangPrefix.Length];
 
         _isPinned = Preferences.Default.Get(Const.sidebarPinnedPreferenceKey, false);
         _savedWidth = Preferences.Default.Get(Const.sidebarWidthPreferenceKey, 250.0);
@@ -327,7 +325,7 @@ public partial class ViewBook : ContentPage
     {
         xSideBarPanel.IsVisible = false;
         SidebarColumn.Width = 0;
-        var langpreflix = language.Substring(0, Const.VNlangPrefix.Length);
+        var langpreflix = language[..Const.VNlangPrefix.Length];
 
         switch (currentTab)
         {
@@ -348,7 +346,7 @@ public partial class ViewBook : ContentPage
     {
         xSideBarPanel.IsVisible = true;
         SidebarColumn.Width = Math.Max(MinSidebarWidth, _savedWidth);
-        var langpreflix = language.Substring(0, Const.VNlangPrefix.Length);
+        var langpreflix = language[..Const.VNlangPrefix.Length];
 
         switch (currentTab)
         {
@@ -507,7 +505,7 @@ public partial class ViewBook : ContentPage
 
     private void UpdateChatLabel(bool isChatVisible)
     {
-        var langPrefix = language.Substring(0, Const.VNlangPrefix.Length);
+        var langPrefix = language[..Const.VNlangPrefix.Length];
         var imgdirection = _isLandscape ? "vertical" : "horizontal";
         var color = isChatVisible ? "light" : "dark";
         imgChat.Source = $"{langPrefix}_chat_{imgdirection}_{color}.png";
@@ -678,7 +676,6 @@ public partial class ViewBook : ContentPage
 
         if (!string.IsNullOrEmpty(jsonResult) && jsonResult != "null" && jsonResult != "{}")
         {
-            var json = jsonResult.Replace("\\\"", "\"").Trim('"');
             using var doc = System.Text.Json.JsonDocument.Parse(jsonResult);
             int current = doc.RootElement.GetProperty("current").GetInt32();
             int total = doc.RootElement.GetProperty("total").GetInt32();
