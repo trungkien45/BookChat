@@ -25,7 +25,7 @@ public partial class ViewBook : ContentPage
             LoadPdf();
         }
     }
-    private readonly Book? book = null;
+    private Book? book = null;
     private readonly IBookService bookService;
     private async void LoadPdf()
     {

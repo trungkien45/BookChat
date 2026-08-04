@@ -67,11 +67,22 @@ namespace BookChat.Resources
             { "PinChat", "Pin chat" },
             { "LoadingPDF", "Loading PDF..." },
             { "BookmarkListTitle", "Bookmarks List" },
+            { "NoteListTitle", "Notes List" },
+
             { "AddButton", "+ Add" },
+
             { "NoBookmarksYet", "No bookmarks yet" },
+            { "NoNotesYet", "No notes yet" },
+
             { "NoBookmarksDetail", "Click '+ Add' above to bookmark the current page." },
+            { "NoNotesDetail", "Click '+ Add' above to note the current page." },
+            
             { "EditBookmark", "Edit bookmark" },
+            { "EditNote", "Edit note" },
+
             { "DeleteBookmark", "Delete bookmark" },
+            { "DeleteNote", "Delete note" },
+            
             { "PageFormat", "Page {0}" },
             { "Edit", "Edit" }
         };
@@ -137,11 +148,21 @@ namespace BookChat.Resources
             { "PinChat", "Ghim khung chat" },
             { "LoadingPDF", "Đang tải PDF..." },
             { "BookmarkListTitle", "Danh sách dấu trang" },
+            { "NoteListTitle", "Danh sách ghi chú" },
+
             { "AddButton", "+ Thêm" },
             { "NoBookmarksYet", "Chưa có dấu trang nào" },
+            { "NoNotesYet", "Chưa có ghi chú nào" },
+            
             { "NoBookmarksDetail", "Nhấn nút '+ Thêm' phía trên để tạo dấu trang cho trang hiện tại." },
+            { "NoNotesDetail", "Nhấn nút '+ Thêm' phía trên để tạo ghi chú cho trang hiện tại." },
+
             { "EditBookmark", "Sửa dấu trang" },
+            { "EditNote", "Sửa ghi chú" },
+            
             { "DeleteBookmark", "Xóa dấu trang" },
+            { "DeleteNote", "Xóa ghi chú" },
+
             { "PageFormat", "Trang {0}" },
             { "Edit", "Sửa" }
         };
@@ -225,16 +246,21 @@ namespace BookChat.Resources
         public static string LoadingPDF => Get("LoadingPDF");
 
         public static string BookmarkListTitle => Get("BookmarkListTitle");
+        public static string NoteListTitle => Get("NoteListTitle");
 
         public static string AddButton => Get("AddButton");
 
         public static string NoBookmarksYet => Get("NoBookmarksYet");
+        public static string NoNotesYet => Get("NoNotesYet");
 
         public static string NoBookmarksDetail => Get("NoBookmarksDetail");
+        public static string NoNotesDetail => Get("NoNotesDetail");
 
         public static string EditBookmark => Get("EditBookmark");
+        public static string EditNote => Get("EditNote");
 
         public static string DeleteBookmark => Get("DeleteBookmark");
+        public static string DeleteNote => Get("DeleteNote");
 
         public static string PageFormat => Get("PageFormat");
 
