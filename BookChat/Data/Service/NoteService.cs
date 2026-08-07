@@ -1,8 +1,5 @@
 ﻿using BookChat.Data.Providers;
 using BookChat.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookChat.Data.Service
 {

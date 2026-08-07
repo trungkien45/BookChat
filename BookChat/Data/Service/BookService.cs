@@ -1,5 +1,4 @@
 using BookChat.Data.Providers;
-using BookChat.Data.Repository;
 using BookChat.Models;
 
 namespace BookChat.Data.Service

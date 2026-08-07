@@ -103,6 +103,15 @@ public partial class ViewBook : ContentPage
         };
         this.noteContent = noteContent;
         this.bookmarkContent = bookmarkContent;
+        this.bookmarkContent.BookmarkSelected += async (s, bookmark) =>
+        {
+            await GoToPageAsync(bookmark.PageNumber);
+        };
+        this.bookmarkContent.GetCurrentPageFunc = async () =>
+        {
+            var (current, _) = await GetPdfPageInfoAsync();
+            return current;
+        };
         this.chatContent = chatContent;
 
     }
@@ -671,11 +680,12 @@ public partial class ViewBook : ContentPage
     }
     public async Task<(int Current, int Total)> GetPdfPageInfoAsync()
     {
-        string script = "JSON.stringify({ current: PDFViewerApplication.page, total: PDFViewerApplication.pagesCount })";
+        string script = "({ current: PDFViewerApplication.page, total: PDFViewerApplication.pagesCount })";
         string jsonResult = await PdfViewer.EvaluateJavaScriptAsync(script);
 
         if (!string.IsNullOrEmpty(jsonResult) && jsonResult != "null" && jsonResult != "{}")
         {
+            // Bỏ lớp JSON string
             using var doc = System.Text.Json.JsonDocument.Parse(jsonResult);
             int current = doc.RootElement.GetProperty("current").GetInt32();
             int total = doc.RootElement.GetProperty("total").GetInt32();

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BookChat.AIChat
+﻿namespace BookChat.AIChat
 {
     public interface IAIChatWebProvider
     {

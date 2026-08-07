@@ -1,14 +1,14 @@
-﻿using BookChat.Data.Providers;
+using BookChat.Data.Providers;
 using BookChat.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BookChat.Data.Service
 {
     public interface IBookmarkService
     {
         Task<List<Bookmark>> GetBookmarkInBook(int bookId);
+        Task<int> AddBookmarkAsync(Bookmark bookmark);
+        Task<int> UpdateBookmarkAsync(Bookmark bookmark);
+        Task<int> DeleteBookmarkAsync(Bookmark bookmark);
     }
     public class BookmarkService : ServiceBase, IBookmarkService
     {
@@ -21,6 +21,22 @@ namespace BookChat.Data.Service
         {
             return await ExecuteAsync(db => db.BookmarkRepository.GetBookmarksByBookIdAsync(bookId));
         }
+
+        public async Task<int> AddBookmarkAsync(Bookmark bookmark)
+        {
+            return await ExecuteAsync(db => db.BookmarkRepository.InsertBookmarkAsync(bookmark));
+        }
+
+        public async Task<int> UpdateBookmarkAsync(Bookmark bookmark)
+        {
+            return await ExecuteAsync(db => db.BookmarkRepository.UpdateBookmarkAsync(bookmark));
+        }
+
+        public async Task<int> DeleteBookmarkAsync(Bookmark bookmark)
+        {
+            return await ExecuteAsync(db => db.BookmarkRepository.DeleteBookmarkAsync(bookmark));
+        }
     }
 
 }
+

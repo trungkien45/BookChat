@@ -1,7 +1,5 @@
 using BookChat.Data.Providers;
 using BookChat.Data.Providers.Sqlite;
-using BookChat.Data.Providers.Sqlite.Repo;
-using BookChat.Data.Repository;
 using BookChat.Data.Service;
 using BookChat.Views;
 using Microsoft.Extensions.Logging;

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BookChat.AIChat.Implement
+﻿namespace BookChat.AIChat.Implement
 {
     public class ChatGPTProvider : IAIChatWebProvider
     {

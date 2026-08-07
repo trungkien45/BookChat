@@ -1,9 +1,6 @@
-using BookChat.Data.Service;
-using BookChat.Models;
 using BookChat.StorageService;
 using BookChat.StorageService.Inteface;
 using System.Collections.ObjectModel;
-using System.Net;
 
 namespace BookChat.Views;
 
