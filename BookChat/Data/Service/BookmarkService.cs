@@ -22,9 +22,9 @@ namespace BookChat.Data.Service
             return await ExecuteAsync(db => db.BookmarkRepository.GetBookmarksByBookIdAsync(bookId));
         }
 
-        public async Task<int> AddBookmarkAsync(Bookmark bookmark)
+        public async Task<int> AddBookmarkAsync(Bookmark newBookmark)
         {
-            return await ExecuteAsync(db => db.BookmarkRepository.InsertBookmarkAsync(bookmark));
+            return await ExecuteAsync(db => db.BookmarkRepository.InsertBookmarkAsync(newBookmark));
         }
 
         public async Task<int> UpdateBookmarkAsync(Bookmark bookmark)
