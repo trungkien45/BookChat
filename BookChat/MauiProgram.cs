@@ -26,9 +26,9 @@ namespace BookChat
 
             // Register Services
 #if ANDROID
-            builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStogareService, BookChat.StorageService.Implement.AndroidStogareService>();
+            builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStorageService, BookChat.StorageService.Implement.AndroidStorageService>();
 #elif WINDOWS
-            builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStogareService, BookChat.StorageService.Implement.WindowsStogareService>();
+            builder.Services.AddSingleton<BookChat.StorageService.Inteface.IStorageService, BookChat.StorageService.Implement.WindowsStorageService>();
 #endif
             
 

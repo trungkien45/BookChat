@@ -1,6 +1,6 @@
 namespace BookChat.StorageService.Inteface
 {
-    public interface IStogareService
+    public interface IStorageService
     {
         /// <summary>
         /// if recursive is true, only get pdf file

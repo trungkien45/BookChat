@@ -83,7 +83,7 @@ namespace BookChat
 
             try
             {
-                var storageService = Application.Current?.Handler?.MauiContext?.Services.GetService<IStogareService>();
+                var storageService = Application.Current?.Handler?.MauiContext?.Services.GetService<IStorageService>();
                 var bookService = Application.Current?.Handler?.MauiContext?.Services.GetService<IBookService>();
 
                 if (storageService != null && bookService != null)

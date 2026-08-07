@@ -31,10 +31,10 @@ public partial class LibraryContent : ContentView
         try
         {
             var storedPath = Preferences.Get(Const.libPathPreferenceKey, string.Empty);
-            var parent = await stogareService.GetParentFolder(storageItem, storedPath);
+            var parent = await storageService.GetParentFolder(storageItem, storedPath);
             if (parent == null)
                 return;
-            var result = await stogareService.GetPdfFiles(parent);
+            var result = await storageService.GetPdfFiles(parent);
 
             if (currentRequest != requestId)
                 return;
@@ -52,11 +52,11 @@ public partial class LibraryContent : ContentView
 
     public ObservableCollection<StorageItem> StorageItems => storageItems;
 
-    private readonly IStogareService stogareService;
+    private readonly IStorageService storageService;
 
-    public LibraryContent(IStogareService stogareService)
+    public LibraryContent(IStorageService storageService)
     {
-        this.stogareService = stogareService;
+        this.storageService = storageService;
         InitializeComponent();
     }
 

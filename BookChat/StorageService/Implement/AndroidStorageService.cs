@@ -6,7 +6,7 @@ using BookChat.StorageService.Inteface;
 
 namespace BookChat.StorageService.Implement
 {
-    public class AndroidStogareService : IStogareService
+    public class AndroidStorageService : IStorageService
     {
 #if !ANDROID
         private const string PlatformNotSupportedMessage = "This method is only supported on Android.";

@@ -22,6 +22,7 @@ public partial class ViewBook : ContentPage
         {
             _file = value;
             libraryContent?.StorageItem = value;
+            Title = "BookChat";
             LoadPdf();
         }
     }

@@ -8,7 +8,7 @@ namespace BookChat
 {
     public partial class MainPage : ContentPage
     {
-        private readonly IStogareService _storageService;
+        private readonly IStorageService _storageService;
         private readonly IBookService _bookService;
         private readonly IDbSessionFactory _dbSessionFactory;
         StorageItem? rootItem = null;
@@ -21,7 +21,7 @@ namespace BookChat
         Stack<StorageItem> secondaryNavStack = new();
         bool isSecondaryViewVisible = false;
 
-        public MainPage(IStogareService storageService, IBookService bookService, IDbSessionFactory dbSessionFactory)
+        public MainPage(IStorageService storageService, IBookService bookService, IDbSessionFactory dbSessionFactory)
         {
             InitializeComponent();
             _storageService = storageService;
@@ -176,7 +176,8 @@ namespace BookChat
                                     onOpen(capturedItem);
                                 }
                             },
-                            capturedItem));
+                            capturedItem,
+                            isSecondary: true));
                     }
                 }
 
@@ -241,7 +242,7 @@ namespace BookChat
             
         }
 
-        protected async void OnLoad(object sender, EventArgs e)
+        protected async void OnLoad(object? sender, EventArgs e)
         {
             await LoadLibPathAsync();
         }
@@ -443,7 +444,6 @@ namespace BookChat
 
         private async void onOpen(StorageItem file)
         {
-            //Todo: Implement the logic to open the PDF file
             await Shell.Current.GoToAsync(nameof(ViewBook), new ShellNavigationQueryParameters
             {
                 ["File"] = file
@@ -451,7 +451,7 @@ namespace BookChat
         }
 
 
-        private View CreateItemView(string name, bool isFolder, Action? onTapped = null, StorageItem? item = null, bool enableMenu = true)
+        private View CreateItemView(string name, bool isFolder, Action? onTapped = null, StorageItem? item = null, bool enableMenu = true, bool isSecondary = false)
         {
             var icon = isFolder ? Const.folderEmojiGlyph : Const.bookEmojiGlyph;
             var iconLabel = new Label
@@ -519,7 +519,7 @@ namespace BookChat
 
                     menuButton.Clicked += async (s, e) =>
                     {
-                        await ShowContextMenuAsync(name, isFolder, item, onTapped, false, false);
+                        await ShowContextMenuAsync(name, isFolder, item, onTapped, false, isSecondary, isSecondary);
                     };
                     Grid.SetColumn(menuButton, 2);
                     row.Children.Add(menuButton);
@@ -586,7 +586,7 @@ namespace BookChat
             catch { }
         }
 
-        private async Task ShowContextMenuAsync(string name, bool isFolder, StorageItem? item, Action? onOpen, bool isCurrent, bool isSecondary = false)
+        private async Task ShowContextMenuAsync(string name, bool isFolder, StorageItem? item, Action? onOpen, bool isCurrent, bool isSecondary = false, bool sourceIsSecondary = false)
         {
             if (item == null)
             {
@@ -629,15 +629,10 @@ namespace BookChat
                     bool flowControl = await CreateNewFolderAsync(item);
                     if (!flowControl) return;
                 }
-                else if (action == AppResources.MenuMoveNewView && isFolder)
+                else if (action == AppResources.MenuMoveNewView)
                 {
-                    // Move the folder to a new OS window (if supported)
-                    //TODO: Implement moving to a new view if needed
-                }
-                else if (action == AppResources.MenuMoveNewView && !isFolder)
-                {
-                    // Move the file to a new OS window (if supported)
-                    //TODO: Implement moving to a new view if needed
+                    bool flowControl = await MoveToNewViewAsync(name, item, sourceIsSecondary);
+                    if (!flowControl) return;
                 }
             }
             catch (Exception ex)
@@ -673,6 +668,51 @@ namespace BookChat
                 result = result + Const.pdfFileExtension;
 
             var success = await _storageService.Rename(item, result);
+            if (!success)
+            {
+                await DisplayAlertAsync(AppResources.Info, AppResources.CreateFolderNotSupportedMessage, AppResources.Ok);
+                return false;
+            }
+
+            if (rootItem != null)
+            {
+                var allPdfItems = await _storageService.GetPdfFilesAndFolders(rootItem, true);
+                var pdfFiles = allPdfItems.Select(x => x.Id).ToList();
+                await _bookService.SyncBooksAsync(pdfFiles);
+            }
+
+            await RefreshPrimaryAndSecondaryAsync();
+            return true;
+        }
+
+        private async Task<bool> MoveToNewViewAsync(string name, StorageItem item, bool sourceIsSecondary)
+        {
+            if (item == null) return false;
+
+            var destination = sourceIsSecondary ? currentItem : secondaryCurrentItem;
+            if (destination == null || !destination.IsDirectory)
+                return false;
+
+            if (item.Id == destination.Id || Path.GetDirectoryName(item.Id) == destination.Id)
+            {
+                await DisplayAlertAsync(AppResources.Info, AppResources.AlreadyInNewViewMessage, AppResources.Ok);
+                return false;
+            }
+
+            var confirm = await DisplayAlertAsync(AppResources.Confirm, string.Format(AppResources.ConfirmMoveMessage, name), AppResources.Yes, AppResources.No);
+            if (!confirm) return false;
+
+            bool success;
+            try
+            {
+                success = await _storageService.Move(item, destination);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(AppResources.Info, $"{AppResources.Error}: {ex.Message}", AppResources.Ok);
+                return false;
+            }
+
             if (!success)
             {
                 await DisplayAlertAsync(AppResources.Info, AppResources.CreateFolderNotSupportedMessage, AppResources.Ok);

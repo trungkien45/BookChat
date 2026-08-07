@@ -2,7 +2,7 @@ using BookChat.StorageService.Inteface;
 
 namespace BookChat.StorageService.Implement
 {
-    public class WindowsStogareService : IStogareService
+    public class WindowsStorageService : IStorageService
     {
 #if !WINDOWS
         private const string PlatformNotSupportedMessage = "This method is only supported on Windows.";
