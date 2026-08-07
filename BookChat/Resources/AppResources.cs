@@ -50,6 +50,8 @@ namespace BookChat.Resources
             { "RenameTitle", "Rename" },
             { "RenamePrompt", "New name:" },
             { "ConfirmDeleteMessage", "Delete '{0}'?" },
+            { "ConfirmMoveMessage", "Move '{0}' to the other view?" },
+            { "AlreadyInNewViewMessage", "This item is already in the other view." },
             { "FolderPickTitle", "Pick any file inside the folder you want to use" },
             { "FolderPickFailedMessage", "Folder pick failed: {0}" },
             { "LibPathEmptyMessage", "Lib Path is empty. Please enter or pick a folder." },
@@ -131,6 +133,8 @@ namespace BookChat.Resources
             { "RenameTitle", "Đổi tên" },
             { "RenamePrompt", "Tên mới:" },
             { "ConfirmDeleteMessage", "Xóa '{0}'?" },
+            { "ConfirmMoveMessage", "Di chuyển '{0}' sang khung bên kia?" },
+            { "AlreadyInNewViewMessage", "Mục này đã ở khung bên kia." },
             { "FolderPickTitle", "Chọn bất kỳ tệp nào bên trong thư mục bạn muốn dùng" },
             { "FolderPickFailedMessage", "Không thể chọn thư mục: {0}" },
             { "LibPathEmptyMessage", "Đường dẫn Lib Path trống. Vui lòng nhập hoặc chọn thư mục." },
@@ -219,6 +223,8 @@ namespace BookChat.Resources
         public static string RenameTitle => Get("RenameTitle");
         public static string RenamePrompt => Get("RenamePrompt");
         public static string ConfirmDeleteMessage => Get("ConfirmDeleteMessage");
+        public static string ConfirmMoveMessage => Get("ConfirmMoveMessage");
+        public static string AlreadyInNewViewMessage => Get("AlreadyInNewViewMessage");
         public static string FolderPickTitle => Get("FolderPickTitle");
         public static string FolderPickFailedMessage => Get("FolderPickFailedMessage");
         public static string LibPathEmptyMessage => Get("LibPathEmptyMessage");

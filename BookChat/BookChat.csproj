@@ -15,6 +15,7 @@
 		<OutputType>Exe</OutputType>
 		<RootNamespace>BookChat</RootNamespace>
 		<UseMaui>true</UseMaui>
+		<UseMonoRuntime>false</UseMonoRuntime>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>

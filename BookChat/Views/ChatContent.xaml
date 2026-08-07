@@ -2,17 +2,13 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BookChat.Views.ChatContent" BindingContext="this">
-    <Grid RowDefinitions="Auto,Auto,*">
-        <Label
-            Grid.Row="0"
-            Text="Welcome to Chat!"
-            TextColor="White"/>
+    <Grid RowDefinitions="Auto,*">
 
-        <Picker x:Name="pickerProviderr" Grid.Row="1" Title="Chat"  ItemsSource="{Binding Providers}"
+        <Picker x:Name="pickerProviderr" Grid.Row="0" Title="Chat"  ItemsSource="{Binding Providers}"
                 ItemDisplayBinding="{Binding Name}" BackgroundColor="White"
                 SelectedItem="{Binding SelectedProvider}" />
 
         <WebView x:Name="xWebChat"
-            Grid.Row="2"/>
+            Grid.Row="1"/>
     </Grid>
 </ContentView>
